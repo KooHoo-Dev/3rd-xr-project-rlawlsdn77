@@ -1,23 +1,17 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
-using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 
 namespace QuickDraw.Scripts
 {
-    // 제자리 게임이라 이동을 막는다. XR Origin (XR Rig)에 붙인다.
-    // XRI Locomotion을 끄고, PC 테스트용 XR 시뮬레이터의 WASD 이동(시점 회전과 컨트롤러 개별 조작은 유지)을 막는다.
-    // 시뮬레이터의 Point-and-Click도 끈다. 커서 레이캐스트가 손에 든 총에 맞으면 컨트롤러가 튄다.
+    // PC 테스트용 XR 시뮬레이터에서 제자리를 지킨다. XR Origin (XR Rig)에 붙인다.
+    // (헤드셋에서는 씬에서 Locomotion·Teleport를 꺼 두어 이미 움직이지 않는다)
+    // - FPS 모드(헤드셋과 양손이 함께 움직임)일 때만 WASD 이동을 막는다. 이동 배율은 컨트롤러 하나만 움직일 때도 쓰여서 항상 0으로 둘 수 없다.
+    // - Point-and-Click을 끈다. 커서 레이캐스트가 손에 든 총에 맞으면 컨트롤러가 튄다.
     public class PlayerMoveLock : MonoBehaviour
     {
         private XRInteractionSimulator simulator;
         private float originalMultiplier;       // 시뮬레이터 원래 이동 배율
         private bool originalPointAndClick;     // 시뮬레이터 원래 Point-and-Click 사용 여부
-
-        private void Start()
-        {
-            foreach (LocomotionProvider provider in GetComponentsInChildren<LocomotionProvider>(true))
-                provider.enabled = false;
-        }
 
         private void Update()
         {
@@ -33,7 +27,6 @@ namespace QuickDraw.Scripts
                 simulator.usePointAndClick = false;
             }
 
-            // FPS 모드(헤드셋과 양손이 함께 움직임)일 때만 이동 배율을 0으로
             simulator.bodyTranslateMultiplier = simulator.manipulatingFPS ? 0f : originalMultiplier;
         }
 

@@ -18,7 +18,7 @@ public class PlayerController : MonoBehaviour
 
     // 컨트롤러 입력 액션 모음
     private InputAction ShootAction;    // 트리거      : 발사 / UI 선택 (사격으로 UI 버튼도 클릭 가능)
-    private InputAction MagOutAction;   // 오른손 A    : 탄창 제거
+    private InputAction MagOutAction;   // 오른손 A    : 탄창 제거 (탄을 다 썼을 때만)
 
     [Header("플레이어의 오른손")]
     [SerializeField] private NearFarInteractor RightHand;   // 총 고정임
@@ -65,7 +65,7 @@ public class PlayerController : MonoBehaviour
         if (RightHand.firstInteractableSelected.transform.TryGetComponent(out Gun heldGun) == false) return;
 
         if (ShootAction.WasPressedThisFrame()) heldGun.TryFire();
-        if (MagOutAction.WasPressedThisFrame()) heldGun.EjectMagazine();
+        if (MagOutAction.WasPressedThisFrame()) heldGun.TryEjectMagazine();   // 탄을 다 쓴 탄창만 빠진다
     }
 
     #endregion
