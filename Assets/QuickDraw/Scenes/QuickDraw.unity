@@ -249,11 +249,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ab25763f96603814c984f1f6f2742c43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  RightHandObj: {fileID: 0}
-  LeftHandObj: {fileID: 0}
   RightHand: {fileID: 0}
   LeftHand: {fileID: 0}
-  InteractObj: {fileID: 0}
 --- !u!1001 &180955992
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2523,15 +2520,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5345705980352556246, guid: 68bbdb5e10003c048b09a9b520c36685, type: 3}
       propertyPath: m_Name
-      value: Gun_9mm (1)
+      value: Gun
       objectReference: {fileID: 0}
     - target: {fileID: 6203978615817206593, guid: 68bbdb5e10003c048b09a9b520c36685, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.023000091
+      value: -0.0004
       objectReference: {fileID: 0}
     - target: {fileID: 6203978615817206593, guid: 68bbdb5e10003c048b09a9b520c36685, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.2500838
+      value: 1.0385
       objectReference: {fileID: 0}
     - target: {fileID: 6203978615817206593, guid: 68bbdb5e10003c048b09a9b520c36685, type: 3}
       propertyPath: m_LocalPosition.z
@@ -2539,31 +2536,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6203978615817206593, guid: 68bbdb5e10003c048b09a9b520c36685, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.5
+      value: 0.70710677
       objectReference: {fileID: 0}
     - target: {fileID: 6203978615817206593, guid: 68bbdb5e10003c048b09a9b520c36685, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.49999994
+      value: 0.00000037261154
       objectReference: {fileID: 0}
     - target: {fileID: 6203978615817206593, guid: 68bbdb5e10003c048b09a9b520c36685, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.5
+      value: -0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: 6203978615817206593, guid: 68bbdb5e10003c048b09a9b520c36685, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.50000006
+      value: 0.00000025323715
       objectReference: {fileID: 0}
     - target: {fileID: 6203978615817206593, guid: 68bbdb5e10003c048b09a9b520c36685, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: -90
-      objectReference: {fileID: 0}
-    - target: {fileID: 6203978615817206593, guid: 68bbdb5e10003c048b09a9b520c36685, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6203978615817206593, guid: 68bbdb5e10003c048b09a9b520c36685, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
+      propertyPath: m_LocalEulerAnglesHint.y
       value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 6203978615817206593, guid: 68bbdb5e10003c048b09a9b520c36685, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2575,6 +2572,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5345705980352556246, guid: 68bbdb5e10003c048b09a9b520c36685, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4579200135621867340}
+    - targetCorrespondingSourceObject: {fileID: 5345705980352556246, guid: 68bbdb5e10003c048b09a9b520c36685, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4579200135621867341}
   m_SourcePrefab: {fileID: 100100000, guid: 68bbdb5e10003c048b09a9b520c36685, type: 3}
 --- !u!54 &3937596468049938178
 Rigidbody:
@@ -2895,6 +2895,25 @@ MonoBehaviour:
   m_LimitAngularVelocity: 0
   m_MaxLinearVelocityDelta: 10
   m_MaxAngularVelocityDelta: 20
+--- !u!114 &4579200135621867341
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4579200135621867338}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e108345ab014400aa732c827c071fe1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuickDraw.Scripts.Gun
+  effectRange: 10
+  muzzleOffset: {x: 0.15, y: 0.06, z: 0}
+  slide: {fileID: 0}
+  trigger: {fileID: 0}
+  magazine: {fileID: 0}
+  muzzleFlash: {fileID: 0}
+  gunfireClip: {fileID: 0}
 --- !u!1001 &6289773233091696078
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2945,7 +2964,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2116276982622441078, guid: 90426f13a0da5314fb3534921073e40d, type: 3}
       propertyPath: m_Name
-      value: Magazine_9mm (1)
+      value: Magazine
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
