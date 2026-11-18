@@ -13,6 +13,8 @@ namespace QuickDraw.Scripts
         private float originalMultiplier;       // 시뮬레이터 원래 이동 배율
         private bool originalPointAndClick;     // 시뮬레이터 원래 Point-and-Click 사용 여부
 
+        #region Unity Methods
+
         private void Update()
         {
             // 시뮬레이터는 씬 로드 뒤에 생기므로 매 프레임 확인한다
@@ -40,5 +42,7 @@ namespace QuickDraw.Scripts
             }
             simulator = null;
         }
+
+        #endregion
     }
 }

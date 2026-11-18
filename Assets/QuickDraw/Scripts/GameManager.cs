@@ -5,6 +5,7 @@ namespace QuickDraw.Scripts
 {
     // 한 판의 흐름: Ready(메뉴) → START → Playing(gameDuration, 쉬는 시간 없음) → Result → MENU → Ready
     // 게임 시간을 단계 수(targetRadius 길이)로 똑같이 나눠, 단계마다 표적이 작아지고·많아지고·빨리 쓰러진다 (기본 30초씩 3단계).
+    // 2단계부터 좌우로 움직이는 표적이 섞이고, 3단계에는 일제 등장이 더해진다.
     // 단계가 바뀌어도 서 있던 표적은 그대로 두고, 새로 나오는 표적부터 다음 단계 수치를 쓴다. 게임이 끝나면 남은 표적이 한꺼번에 쓰러진다.
     // 쏜 수와 맞힌 수는 Playing 단계에서만 센다 (START / MENU를 쏜 탄은 명중률에 안 들어감). 메뉴로 돌아갈 때 총을 비운다.
     public class GameManager : MonoBehaviour
@@ -18,6 +19,8 @@ namespace QuickDraw.Scripts
         [SerializeField] private float[] targetRadius = { 0.5f, 0.35f, 0.25f };     // 표적 반지름 (m)
         [SerializeField] private int[] targetCount = { 3, 4, 5 };                   // 동시에 서 있는 표적 수
         [SerializeField] private float[] targetLifetime = { 1.5f, 1.2f, 1f };       // 표적이 서 있는 시간 (초)
+        [SerializeField] private float[] movingChance = { 0f, 0.4f, 0.4f };         // 좌우로 움직이는 표적의 비율 (0~1)
+        [SerializeField] private float[] volleyInterval = { 0f, 0f, 8f };           // 일제 등장 간격 (초, 0이면 없음)
 
         [Header("점수")]
         [SerializeField] private int scorePerHit = 10;                              // 표적 하나 맞힐 때 점수
@@ -95,7 +98,7 @@ namespace QuickDraw.Scripts
             int current = Mathf.Min((int)((gameDuration - RemainingTime) / (gameDuration / stages)), stages - 1);
             if (current == stage) return;
             stage = current;
-            popup.Begin(targetRadius[stage], targetCount[stage], targetLifetime[stage]);
+            popup.Begin(targetRadius[stage], targetCount[stage], targetLifetime[stage], movingChance[stage], volleyInterval[stage]);
             Debug.Log($"[GameManager] {stage + 1}단계 (남은 시간 {RemainingTime:0}초)");
         }
 

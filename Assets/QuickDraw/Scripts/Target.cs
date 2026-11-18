@@ -9,21 +9,33 @@ namespace QuickDraw.Scripts
     {
         [Header("표적")]
         [SerializeField] private float riseTime = 0.2f;     // 일어나기·쓰러지기에 걸리는 시간 (초)
+        [SerializeField] private ParticleSystem hitEffect;  // 맞은 자리에 만드는 효과 (HitEffect.prefab, 끝나면 스스로 사라짐)
+
+        [Header("좌우 이동 (moving으로 세웠을 때)")]
+        [SerializeField] private float moveWidth = 2f;      // 왕복하는 폭 (m). 자리를 가운데로 양옆 절반씩
+        [SerializeField] private float moveSpeed = 1.5f;    // 이동 속도 (m/s)
 
         public bool IsStanding { get; private set; }        // 서 있어 맞힐 수 있음 (쓰러지는 중이면 false)
         public event Action<Target> Hit;                    // 맞음 (맞은 표적은 바로 사라진 뒤)
 
         private Quaternion facing;      // 서 있을 때 회전 (+Z = 플레이어 쪽)
         private Coroutine motion;
+        private bool moving;            // 서 있는 동안 좌우로 움직임
+        private Vector3 basePosition;   // 이동의 가운데 (루트 위치)
+        private float shownAt;
 
         // 원판 중심이 center에 오도록, 반지름 radius로 일으켜 세운다. 표적 면은 플레이어(원점) 쪽을 본다
-        public void Show(Vector3 center, float radius)
+        // moving이면 서 있는 동안 자리를 가운데로 좌우로 왕복한다
+        public void Show(Vector3 center, float radius, bool moving)
         {
             Vector3 toPlayer = -center;
             toPlayer.y = 0f;
             facing = Quaternion.LookRotation(toPlayer);
             transform.localScale = Vector3.one * (radius * 2f);
-            transform.position = center - Vector3.up * radius;  // 루트 = 원판 아래 끝
+            basePosition = center - Vector3.up * radius;        // 루트 = 원판 아래 끝
+            transform.position = basePosition;
+            this.moving = moving;
+            shownAt = Time.time;
 
             gameObject.SetActive(true);
             IsStanding = true;
@@ -51,9 +63,23 @@ namespace QuickDraw.Scripts
         {
             if (!IsStanding) return;
             Debug.Log($"[Target] 명중: {name}");
+            // 맞은 면에서 플레이어 쪽(hit.normal)으로 튀게 세운다
+            if (hitEffect != null) Instantiate(hitEffect, hit.point, Quaternion.LookRotation(hit.normal));
             Hide();
             Hit?.Invoke(this);
         }
+
+        #region Unity Methods
+
+        // 가운데에서 출발해 표적 면의 옆 방향으로 왕복한다. 쓰러지기 시작하면 그 자리에 멈춘다
+        private void Update()
+        {
+            if (!IsStanding || !moving) return;
+            float offset = Mathf.PingPong((Time.time - shownAt) * moveSpeed + moveWidth / 2f, moveWidth) - moveWidth / 2f;
+            transform.position = basePosition + facing * Vector3.right * offset;
+        }
+
+        #endregion
 
         // 루트(아래 끝)를 축으로 from → to 각도(X축, 음수 = 플레이어 반대쪽으로 누움)로 돌린다
         private void Rotate(float from, float to, bool hideAtEnd)

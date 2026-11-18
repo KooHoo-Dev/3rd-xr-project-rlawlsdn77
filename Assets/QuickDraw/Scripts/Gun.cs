@@ -20,10 +20,16 @@ namespace QuickDraw.Scripts
         [SerializeField] private Transform magazineSocket;          // 끼운 탄창이 붙는 자리 (총 원점, 회전 없음)
 
         [Header("발사 효과")]
+        [SerializeField] private ParticleSystem muzzleFlash;    // 총구 화염 (총의 자식 MuzzleFlash, 비어 있으면 없음)
         [SerializeField] private AudioClip gunfireClip;         // 총소리 (비어 있으면 소리 없이 쏨)
         [SerializeField] private AudioClip dryFireClip;         // 탄이 없을 때 딸깍 (비어 있으면 소리 없음)
+        [SerializeField] private AudioClip magazineInClip;      // 탄창을 끼울 때 (비어 있으면 소리 없음)
+        [SerializeField] private AudioClip magazineOutClip;     // 탄창이 빠질 때 (비어 있으면 소리 없음)
         [SerializeField] private float hapticAmplitude = 0.7f;  // 진동 세기 (0~1)
         [SerializeField] private float hapticDuration = 0.08f;  // 진동 시간 (초)
+
+        [Header("겉모습 (이스터에그)")]
+        [SerializeField] private Renderer[] bodyRenderers;      // 겉모습을 바꿀 몸체 (Gun, Gate_07, Trigger_Guard_07)
 
         public int Ammo { get; private set; }               // 남은 탄 (탄창이 없으면 0)
         public bool HasMagazine => magazine != null;        // 탄창이 꽂혀 있음
@@ -38,8 +44,8 @@ namespace QuickDraw.Scripts
         public Vector3 MuzzleOffset => muzzleOffset;
 
         private XRGrabInteractable grab;
+        private Material[] originalMaterials;   // 몸체의 원래 머티리얼 (SetSkin(null)로 되돌림)
         private Magazine magazine;      // 꽂혀 있는 탄창
-        private RaycastHit aimHit;      // AimTarget을 맞힌 레이캐스트 결과 (UI가 어느 버튼을 맞혔는지 볼 때 씀)
 
         private Vector3 MuzzleWorldPos => transform.TransformPoint(muzzleOffset);
 
@@ -57,16 +63,18 @@ namespace QuickDraw.Scripts
             Debug.Log("[Gun] 발사");
             SetAmmo(Ammo - 1);
             PlayClip(gunfireClip);
+            if (muzzleFlash != null) muzzleFlash.Play();
             SendHaptic();
             // 맞히기보다 먼저 알린다. 순서가 바뀌면 START를 쏜 탄이 게임이 시작된 뒤에 세어진다
             Fired?.Invoke();
 
-            // 겨누고 있는 대상이나 그 부모가 맞을 수 있는 물체면 맞힌다
+            // 지금 겨눈 대상이나 그 부모가 맞을 수 있는 물체면 맞힌다
+            // (AimTarget은 Update에서 정해서 이 호출보다 한 프레임 늦을 수 있으므로 여기서 다시 겨눈다)
             // (콜라이더는 자식 Face에, IShootable은 루트에 붙을 수 있다)
-            if (AimTarget != null)
+            if (Aim(out RaycastHit hit))
             {
-                IShootable shootable = AimTarget.GetComponentInParent<IShootable>();
-                if (shootable != null) shootable.Shooted(aimHit);
+                IShootable shootable = hit.collider.GetComponentInParent<IShootable>();
+                if (shootable != null) shootable.Shooted(hit);
             }
             return true;
         }
@@ -78,6 +86,7 @@ namespace QuickDraw.Scripts
             magazine = inserted;
             inserted.AttachTo(magazineSocket);
             SetAmmo(magazineCapacity);
+            PlayClip(magazineInClip);
             Debug.Log("[Gun] 탄창 끼움");
         }
 
@@ -100,7 +109,15 @@ namespace QuickDraw.Scripts
             magazine.Drop();
             magazine = null;
             SetAmmo(0);
+            PlayClip(magazineOutClip);
             Debug.Log("[Gun] 탄창 제거");
+        }
+
+        // UI(튜토리얼 이스터에그)가 호출한다. 몸체를 skin으로 칠하고, null이면 원래 머티리얼로 되돌린다
+        public void SetSkin(Material skin)
+        {
+            for (int i = 0; i < bodyRenderers.Length; i++)
+                bodyRenderers[i].sharedMaterial = skin != null ? skin : originalMaterials[i];
         }
 
         #region Unity Methods
@@ -108,20 +125,19 @@ namespace QuickDraw.Scripts
         private void Awake()
         {
             grab = GetComponent<XRGrabInteractable>();
+            originalMaterials = new Material[bodyRenderers.Length];
+            for (int i = 0; i < bodyRenderers.Length; i++) originalMaterials[i] = bodyRenderers[i].sharedMaterial;
         }
 
         private void Update()
         {
             GameObject aimTarget = null;
             AimDistance = effectRange;
-            // 쥐고 있을 때만 조준한다 (내려놓은 총은 쏠 수도, 레이저를 그릴 수도 없다)
-            // hit.transform은 Rigidbody가 있으면 그 오브젝트를 돌려주므로 맞은 콜라이더를 쓴다. 트리거 콜라이더는 무시한다
-            if (grab.isSelected &&
-                Physics.Raycast(MuzzleWorldPos, transform.right, out RaycastHit hit, effectRange, hitMask, QueryTriggerInteraction.Ignore))
+            // hit.transform은 Rigidbody가 있으면 그 오브젝트를 돌려주므로 맞은 콜라이더를 쓴다
+            if (Aim(out RaycastHit hit))
             {
                 aimTarget = hit.collider.gameObject;
                 AimDistance = hit.distance;
-                aimHit = hit;
             }
 
             // 대상이 바뀔 때만 로그를 남긴다
@@ -139,6 +155,15 @@ namespace QuickDraw.Scripts
         }
 
         #endregion
+
+        // 총구에서 총열 방향으로 레이캐스트한다 (Update의 조준선과 TryFire의 명중 판정이 같이 씀)
+        // 쥐고 있을 때만 조준한다 (내려놓은 총은 쏠 수도, 레이저를 그릴 수도 없다). 트리거 콜라이더는 무시한다
+        private bool Aim(out RaycastHit hit)
+        {
+            hit = default;
+            return grab.isSelected &&
+                Physics.Raycast(MuzzleWorldPos, transform.right, out hit, effectRange, hitMask, QueryTriggerInteraction.Ignore);
+        }
 
         private void SetAmmo(int ammo)
         {
