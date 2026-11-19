@@ -10,7 +10,7 @@ Nov 17, 2026 · 기준 문서: [Concept_Doc.md](Concept_Doc.md)
 - **설계 원칙**: 코드는 최대한 간결하게 씁니다. 수치는 그 값을 쓰는 스크립트의 Inspector 필드(`[SerializeField]` + 기본값)로 두고, 데이터 파일이나 데이터 전용 클래스는 만들지 않습니다. 입력 바인딩은 코드에서 `AddBinding`으로 겁니다.
 - **손 역할**: 총은 항상 오른손, 탄창은 항상 왼손으로 잡습니다.
 - **상호작용**: 잡기는 XRI(Near-Far Interactor 근접)가, 발사와 탄창 빼기 입력은 `PlayerController`가 맡아 `Gun`에 전달합니다. 쥔 탄창을 빈 총 아래에 대면 끼워질 자리에 반투명 가이드가 보이고, 손을 놓으면 끼워져 바로 쏠 수 있습니다. A 버튼은 탄을 다 쓴 탄창만 뺍니다 (3.5).
-- **진행 상황**: M0~M5(기반, 총, 탄창, 표적, 게임 흐름, 단계 난이도) 완료. 한 판은 쉬는 시간 없는 90초입니다. 표적은 1단계 팝업 → 2단계 좌우 이동 표적 섞임 → 3단계 일제 등장 추가로 단계마다 패턴이 하나씩 늘어납니다. 자동 테스트는 두지 않고 Play 모드(시뮬레이터)나 헤드셋에서 직접 확인하며, 실제 기기 확인이 남았습니다(7.1). 다음은 M6(다듬기)입니다 (7장).
+- **진행 상황**: M0~M5(기반, 총, 탄창, 표적, 게임 흐름, 단계 난이도) 완료. 한 판은 START 뒤 3초 카운트다운, 이어서 쉬는 시간 없는 90초입니다. 표적은 1단계 팝업 → 2단계 좌우 이동 표적 섞임 → 3단계 일제 등장 추가로 단계마다 패턴이 하나씩 늘어납니다. 자동 테스트는 두지 않고 Play 모드(시뮬레이터)나 헤드셋에서 직접 확인하며, 실제 기기 확인이 남았습니다(7.1). 다음은 M6(다듬기)입니다 (7장).
 
 ---
 
@@ -20,16 +20,16 @@ Nov 17, 2026 · 기준 문서: [Concept_Doc.md](Concept_Doc.md)
 
 | 스크립트 | 필드 | 기본값 |
 | --- | --- | --- |
-| `GameManager` | `gameDuration` (한 판, 쉬는 시간 없음) | 90초 |
+| `GameManager` | `countdownDuration` (START 뒤 카운트다운, 끝나면 게임 시작) | 3초 |
+| | `gameDuration` (한 판, 쉬는 시간 없음) | 90초 |
 | | `targetRadius` (단계별, 길이 = 단계 수. 게임 시간을 똑같이 나눔 → 30초씩) | 0.5 / 0.35 / 0.25 m |
-| | `targetCount` / `targetLifetime` (단계별 동시에 서 있는 수 / 서 있는 시간) | *3 / 4 / 5개* · *1.5 / 1.2 / 1초* |
-| | `movingChance` (단계별, 좌우로 움직이는 표적의 비율) | *0 / 0.4 / 0.4* |
+| | `targetCount` / `targetLifetime` (단계별 동시에 서 있는 수 / 서 있는 시간) | 3 / 4 / 5개 · 1.5 / 1.2 / 1초 |
+| | `movingChance` (단계별, 좌우로 움직이는 표적의 비율) | 0 / 0.4 / 0.4 |
 | | `volleyInterval` (단계별 일제 등장 간격, 0이면 없음) | *0 / 0 / 8초* |
 | | `scorePerHit` | 10 |
 | `Gun` | `effectRange` | 30 m (가장 먼 표적 15m보다 길게) |
 | | `magazineCapacity` (탄창 1개 탄 수) | 10발 |
 | | `hapticAmplitude` / `hapticDuration` | *0.7* / *0.08초* |
-| | `triggerPullAngle` | *15°* |
 | `LaserSight` | `width` (색은 `M_Laser` 머티리얼, 빨강) | *0.003m* |
 | | `dotScale` (거리 1m당 조준점 지름) | *0.005* (15m에서 7.5cm) |
 | `ReturnToSpawn` | `returnDelay` | 2초 |
@@ -39,13 +39,13 @@ Nov 17, 2026 · 기준 문서: [Concept_Doc.md](Concept_Doc.md)
 | | `leaveDistance` (놓은 탄창이 자리에서 수평으로 이만큼 넘게 벗어나면 빈 자리) | *0.05m* |
 | | `slots` (탄창 자리, 자식 Transform) | *3개: (-0.29, 1.01, 0.55)에서 -X로 10cm 간격, 눕힌 방향. 테이블 윗면보다 약 12cm 위라 떨어져 놓임* |
 | `Target` | `riseTime` (일어나기·쓰러지기 시간) | *0.2초* |
-| | `moveWidth` / `moveSpeed` (이동 표적이 왕복하는 폭 / 속도) | *2m (자리 양옆 1m씩)* / *1.5m/s* |
+| | `moveWidth` / `moveSpeed` (이동 표적이 왕복하는 폭 / 속도) | 2m (자리 양옆 1m씩) / *1.5m/s* |
 | `PopupPattern` | `slots` (7개 자리, 원판 중심의 월드 좌표) | *(-3, 1.2, 6) (0, 1.5, 5) (3, 1.2, 6) (-4.5, 1.8, 10) (1.5, 2, 9) (-1.5, 1.4, 13) (4, 1.6, 14)* |
-| | `volleyCount` / `volleyLifetime` (일제 등장 때 한꺼번에 세우는 수 / 서 있는 시간) | *4개* / *2.5초* |
+| | `volleyCount` / `volleyLifetime` (일제 등장 때 한꺼번에 세우는 수 / 서 있는 시간) | 4개 / 2.5초 |
 | | 등장 간격 (필드 아님) | `targetLifetime ÷ targetCount` = 0.5 / 0.3 / 0.2초 |
 
 - 좌표는 월드 좌표입니다. XR Origin이 (0, 0, 0)에서 +Z를 보므로 z가 곧 정면 거리입니다 (5~15m).
-- 기획서 값은 한 판 1분 30초(쉬는 시간 없음, 30초마다 단계), +10점, 탄창 10발, 놓친 총 복귀 2초, 표적 거리 5~15m입니다.
+- 기획서 값은 3·2·1 카운트다운, 한 판 1분 30초(쉬는 시간 없음, 30초마다 단계), +10점, 탄창 10발, 놓친 총 복귀 2초, 다 쓴 탄창 5초 뒤 제거, 표적 거리 5~15m, 단계별 표적 크기·동시 수·서 있는 시간, 이동 표적(약 40%, 자리 양옆 1m), 일제 등장(4개, 2.5초)입니다.
 
 ### 1.1 입력 바인딩
 
@@ -64,7 +64,7 @@ Nov 17, 2026 · 기준 문서: [Concept_Doc.md](Concept_Doc.md)
 
 | 스크립트 | 하는 일 | 가진 값 |
 | --- | --- | --- |
-| `GameManager` | 단계 전환(`StartGame()`·`ReturnToMenu()`), 게임 시간, 30초마다 표적 수치 단계, 점수·명중률 집계, `PopupPattern` 시작·종료, 메뉴로 돌아갈 때 총 비우기. `PhaseChanged` 이벤트 | `Phase`(`GamePhase`: Ready·Playing·Result), `RemainingTime`, `Score`, `ShotCount`, `HitCount`, `Accuracy` |
+| `GameManager` | 단계 전환(`StartGame()`·`ReturnToMenu()`), 카운트다운·게임 시간, 30초마다 표적 수치 단계, 점수·명중률 집계, `PopupPattern` 시작·종료, 메뉴로 돌아갈 때 총 비우기. `PhaseChanged` 이벤트 | `Phase`(`GamePhase`: Ready·Countdown·Playing·Result), `RemainingTime`(Countdown이면 카운트다운, Playing이면 게임의 남은 시간), `Score`, `ShotCount`, `HitCount`, `Accuracy` |
 | `PlayerController` | 입력. 오른손 트리거 → 든 총의 `TryFire()`, 오른손 A → `TryEjectMagazine()` | 없음 (든 총은 오른손 `NearFarInteractor`에서 바로 읽음) |
 | `PlayerMoveLock` | PC 테스트용 XR 시뮬레이터에서 제자리를 지킴: FPS 모드의 WASD 이동과 Point-and-Click을 끔 (헤드셋 이동은 씬 설정으로 이미 막혀 있음) | 시뮬레이터 원래 이동 배율, Point-and-Click 사용 여부 |
 | `Gun` | `TryFire()`·`TryEjectMagazine()`(A, 0발일 때만)·`EjectMagazine()`(메뉴 복귀, 항상)·`InsertMagazine()`, 매 프레임 조준 레이캐스트(`AimTarget`, 쏠 때는 다시 겨눠 판정), 연출 | `Ammo`, `HasMagazine` |
@@ -77,13 +77,15 @@ Nov 17, 2026 · 기준 문서: [Concept_Doc.md](Concept_Doc.md)
 | `IShootable` | 총에 맞을 수 있는 물체의 인터페이스: `Shooted(RaycastHit hit)` (총의 조준 레이캐스트가 맞은 지점) | |
 | `Target` | `Show(원판 중심, 반지름, 이동 여부)`(일어남, 이동이면 서 있는 동안 좌우 왕복)·`Hide()`(바로 사라짐)·`Fall()`(쓰러진 뒤 사라짐), 원형 명중 판정, `Hit` 이벤트 | `IsStanding` |
 | `PopupPattern` | 게임의 모든 표적. 정해진 자리에 나타났다 쓰러짐, 일부는 좌우 이동, 간격마다 일제 등장. `Begin(radius, count, lifetime, movingChance, volleyInterval)`, `End()`, `TargetHit` 이벤트. `Target.prefab`은 필요할 때 만들어 돌려 씀 | 표적마다 자리·쓰러질 시각 |
-| `UI` | World Space UI. `PhaseChanged`를 받아 Menu / Score / Result 중 하나만 보임. Score는 남은 시간(`m:ss`)과 점수만(바뀔 때만 글자 갱신), Result는 점수·명중률과 MENU 버튼만 표시. `UI` 루트가 `IShootable`이고, 맞은 콜라이더가 START면 `StartGame()`, MENU면 `ReturnToMenu()`, 튜토리얼 보드면 이스터에그 적중 수를 셈. Ready에서는 튜토리얼 보드도 보임 | 튜토리얼 적중 수 |
+| `UI` | World Space UI. `PhaseChanged`를 받아 Menu / Countdown / Score / Result 중 하나만 보임. Countdown은 남은 카운트다운을 큰 숫자(3·2·1)로 보이고 숫자가 바뀔 때와 게임이 시작될 때 소리를 냄(2.2). Score는 남은 시간(`m:ss`)과 점수만(바뀔 때만 글자 갱신), Result는 점수·명중률과 MENU 버튼만 표시. `UI` 루트가 `IShootable`이고, 맞은 콜라이더가 START면 `StartGame()`, MENU면 `ReturnToMenu()`, 튜토리얼 보드면 이스터에그 적중 수를 셈. Ready에서는 튜토리얼 보드도 보임 | 튜토리얼 적중 수 |
 
 정한 규칙:
 
-- 쏜 수와 맞힌 수는 **Playing 단계에서만** 셉니다. Ready, Result에서 쏜 탄(START, MENU 포함)은 명중률에 들어가지 않습니다.
+- 쏜 수와 맞힌 수는 **Playing 단계에서만** 셉니다. Ready, Countdown, Result에서 쏜 탄(START, MENU, 카운트다운 중 쏜 탄 포함)은 명중률에 들어가지 않습니다.
 - 명중률 = 맞힌 수 ÷ 쏜 수 (0발이면 0).
 - 매 판은 빈 총(탄창 없음)으로 시작합니다. MENU로 메뉴에 돌아가면 꽂힌 탄창을 빼고 남은 탄을 버립니다.
+- START를 쏜 1발도 탄창에서 빠지고 탄이 남은 탄창은 A로 뺄 수 없으므로, 게임은 9발 이하로 시작합니다 (튜토리얼 보드를 쐈으면 더 적음).
+- 결과 화면이 될 때 0발이면 새 탄창을 끼워 MENU를 쏩니다. 그 탄창도 메뉴로 돌아갈 때 남은 탄과 함께 빠집니다.
 - 탄창을 끼우면 바로 쏠 수 있습니다 (`Ammo = 10`).
 - 탄창이 없거나 탄이 0발일 때 방아쇠를 당기면 딸깍 소리만 나고 쏜 수에 들어가지 않습니다.
 - A 버튼(`TryEjectMagazine`)은 탄이 0발일 때만 탄창을 뺍니다. 탄이 남아 있으면 아무 일 없습니다(로그만).
@@ -92,7 +94,7 @@ Nov 17, 2026 · 기준 문서: [Concept_Doc.md](Concept_Doc.md)
 
 ### 2.1 시스템끼리 연결
 
-`Gun`은 **`Fired`를 레이캐스트 처리보다 먼저** 보냅니다. 순서가 바뀌면 START를 쏜 탄이 Playing이 된 뒤에 집계되어 게임의 쏜 수에 들어갑니다.
+`Gun`은 **`Fired`를 레이캐스트 처리보다 먼저** 보냅니다. 그래서 쏜 탄은 맞힌 대상이 단계를 바꾸기 전의 단계에서 셉니다 (START를 쏜 탄은 Ready, 마지막 표적을 맞힌 탄은 Playing).
 
 ```mermaid
 sequenceDiagram
@@ -116,18 +118,23 @@ sequenceDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> Ready
-    Ready --> Playing: START 표적 명중
+    Ready --> Countdown: START 표적 명중
+    Countdown --> Playing: 3초 끝
     Playing --> Result: 1분 30초 끝
     Result --> Ready: MENU 표적 명중
 ```
 
 | 바뀐 단계 | `GameManager`가 하는 일 |
 | --- | --- |
-| → Playing | 점수·쏜 수·맞힌 수를 0으로, 남은 시간 = `gameDuration`(90초). 바로 1단계 수치로 `popup.Begin` |
+| → Countdown | 점수·쏜 수·맞힌 수를 0으로, 남은 시간 = `countdownDuration`(3초). 표적은 아직 나오지 않음 |
+| → Playing | 남은 시간 = `gameDuration`(90초). 바로 1단계 수치로 `popup.Begin` |
 | Playing 중 | 지난 시간 ÷ (`gameDuration` ÷ 단계 수)로 단계를 정해, 바뀔 때만 `popup.Begin(targetRadius[단계], targetCount[단계], targetLifetime[단계], movingChance[단계], volleyInterval[단계])`. `End`는 부르지 않아 서 있던 표적은 그대로 |
 | Playing → | `popup.End()`. 남은 표적이 한꺼번에 쓰러짐 |
 | → Ready | Menu 보드와 START 표적 보이기. `gun.EjectMagazine()`으로 빈 총으로 만듦 (탄창이 없으면 아무 일 없음) |
 | → Result | Result 보드에 점수·명중률과 MENU 표적 보이기 |
+
+- **카운트다운 표시**: Countdown 동안 `UI`가 `RemainingTime`을 올림한 숫자(3 → 2 → 1)를 눈높이의 Countdown 보드에 크게 보입니다. 숫자가 바뀔 때마다 `countdownClip`(`Audio/CountdownTick.wav`), Playing이 될 때 `goClip`(`Audio/CountdownGo.wav`)을 재생합니다.
+- **카운트다운 소리**: 클립은 프로젝트에 있는 XRI 예제의 `XRI_Examples/Global/Audio/Button_22_Click.wav`와 Starter Assets의 `Button Pop.wav`를 `Audio/`로 복사해 씁니다. `AudioSource.PlayClipAtPoint`로 머리(메인 카메라) 위치에서 냅니다. 보드는 4.1m 앞이라, 보드 자리에서 내면 거리 감쇠로 작게 들립니다.
 
 ### 2.3 표적 패턴 동작
 
@@ -184,7 +191,7 @@ stateDiagram-v2
 | 총열 방향 | Gun_9mm 모델은 총열이 **로컬 +X**입니다. 레이캐스트, 레이저, 기즈모 모두 `transform.right`를 씁니다 |
 | 총구 위치 | `muzzleOffset`(총 기준 로컬 좌표) → `MuzzleWorldPos`. 총구 화염 ParticleSystem도 같은 위치에 둡니다 |
 | 잡기 | `XRGrabInteractable`, Interaction Layer = `Gun`, Movement Type = **Instantaneous**. Velocity Tracking은 각속도로 회전을 따라가서 손목을 빨리 돌리면 늦게 따라오다 튀고, 콜라이더에 밀립니다. Instantaneous는 잡는 동안 Rigidbody를 kinematic으로 두고 손 위치·회전을 그대로 씁니다 |
-| 잡는 위치 | Use Dynamic Attach는 끄고, 손잡이에 만든 `GunAttach`를 Attach Transform으로 지정합니다. XRI는 Attach의 +Z를 손이 가리키는 방향으로 맞추므로 `GunAttach`는 +Z가 총열(+X)을 향하도록 Y축으로 90° 돌립니다. 지금 `GunAttach`는 총의 로컬 원점(모델 피벗)에 있으므로, M1에서 쥐었을 때 손잡이가 손바닥에 오는지 보고 위치를 맞춥니다 |
+| 잡는 위치 | Use Dynamic Attach는 끄고, 손잡이에 만든 `GunAttach`를 Attach Transform으로 지정합니다. XRI는 Attach의 +Z를 손이 가리키는 방향으로 맞추므로 `GunAttach`는 +Z가 총열(+X)을 향하도록 Y축으로 90° 돌립니다. `GunAttach`는 지금 총의 로컬 원점(모델 피벗)에 있고, 쥐었을 때 손잡이가 손바닥에 오는지는 실제 기기에서 보고 맞춥니다 (7.1) |
 | 콜라이더 | Colliders 목록은 비워 둡니다. XRI가 총의 콜라이더(몸체, `Gate_07`)를 트리거만 빼고 모두 모아 잡기에 씁니다. non-convex MeshCollider는 Rigidbody와 같이 쓸 수 없으므로 Convex를 켜거나 BoxCollider로 바꿈 |
 | 발사 | `PlayerController`가 `TryFire()`를 부릅니다. `Gun`은 XRI의 `activated` 이벤트를 듣지 않습니다. 둘 다 들으면 트리거 한 번에 두 발이 나갑니다 |
 | 조준 | 총을 쥐고 있을 때만 매 프레임 레이캐스트로 맞은 콜라이더의 오브젝트(`hit.collider`)를 `AimTarget`에 담습니다 (내려놓으면 `AimTarget` = 없음). 같은 레이캐스트로 맞은 거리를 `AimDistance`(맞은 게 없으면 사거리)에 담습니다. `hit.transform`은 Rigidbody가 있으면 그 오브젝트를 돌려주므로 쓰지 않습니다. 트리거 콜라이더는 무시합니다(`QueryTriggerInteraction.Ignore`). 로그는 대상이 바뀔 때만 남깁니다. `LaserSight`가 이 값을 씁니다 |
@@ -196,10 +203,9 @@ stateDiagram-v2
 | 레이저 | `LaserSight`가 잡혀 있을 때만 총구에서 `AimDistance`까지 LineRenderer로 선을 긋고, 맞은 게 있으면 끝에 구 모양 점을 둡니다. 선과 점은 총 **로컬 좌표**로 그려서, XRI가 렌더링 직전(OnBeforeRender)에 총을 옮겨도 어긋나지 않습니다. 점은 `Start`에서 만들어 `SnapGuide` 미리보기에 섞이지 않게 합니다 |
 | 총구 화염 | `Gun.prefab`의 자식 `MuzzleFlash`(ParticleSystem, 총구 위치, +Z = 총열 방향, 로컬 시뮬레이션)를 `muzzleFlash`에 연결하고, `TryFire()`가 성공하면 `Play()`. 노랑~주황 원형 4개가 0.05~0.07초 동안 터지며 작아집니다(크기 0.1~0.18m). 빈 총 딸깍에는 없습니다 |
 | 이펙트 재료 | `T_FxSoft.png`(64px 흰 원, 가장자리로 갈수록 투명, 스크립트로 만듦) + `M_Fx`(URP `Particles/Unlit`, 투명·알파 블렌드). POLY 번들의 파티클 텍스처는 알파가 없어 가산으로만 쓸 수 있는데, 가산은 밝은 하늘과 흰 표적 위에서 묻혀서 쓰지 않았습니다(그 머티리얼은 옛 내장 셰이더라 URP에서 분홍색) |
-| 방아쇠 | 쏠 때 `trigger` 부품(모델의 `Trigger_Guard_07`)을 `triggerPullAngle`만큼 돌렸다 되돌림 (선택) |
 | 놓쳤을 때 | `ReturnToSpawn`: `Awake` 때 위치·회전을 기억해 두고, 놓친 뒤 2초 안에 다시 잡지 않으면 속도를 0으로 하고 그 자리로 옮깁니다. 따로 스폰 지점 오브젝트를 두지 않습니다 |
 
-완성 때의 모양입니다. `trigger`(M6)는 아직 없습니다.
+Inspector 필드와 밖에서 쓰는 멤버입니다 (메서드 본문 생략).
 
 ```csharp
 public class Gun : MonoBehaviour
@@ -212,32 +218,35 @@ public class Gun : MonoBehaviour
     [SerializeField] private Vector3 muzzleOffset;              // 총구 위치 (총 기준 로컬 좌표)
     [SerializeField] private LayerMask hitMask;                 // Default + Shootable만 체크
 
-    [Header("총기 부품")]
-    [SerializeField] private Transform trigger;
-    [SerializeField] private Transform magazineSocket;          // 끼운 탄창이 붙는 자리 (총 원점)
+    [Header("탄창")]
+    [SerializeField] private Transform magazineSocket;          // 끼운 탄창이 붙는 자리 (총 원점, 회전 없음)
 
     [Header("발사 효과")]
     [SerializeField] private ParticleSystem muzzleFlash;
     [SerializeField] private AudioClip gunfireClip;
-    [SerializeField] private AudioClip dryFireClip;                // 탄이 없을 때 딸깍
-    [SerializeField] private AudioClip magazineInClip;             // 탄창을 끼울 때
-    [SerializeField] private AudioClip magazineOutClip;            // 탄창이 빠질 때
+    [SerializeField] private AudioClip dryFireClip;             // 탄이 없을 때 딸깍
+    [SerializeField] private AudioClip magazineInClip;          // 탄창을 끼울 때
+    [SerializeField] private AudioClip magazineOutClip;         // 탄창이 빠질 때
     [SerializeField] private float hapticAmplitude = 0.7f;
     [SerializeField] private float hapticDuration = 0.08f;
 
-    public int Ammo { get; private set; }
-    public bool HasMagazine { get; private set; }
+    [Header("겉모습 (이스터에그)")]
+    [SerializeField] private Renderer[] bodyRenderers;          // 겉모습을 바꿀 몸체 (Gun, Gate_07, Trigger_Guard_07)
+
+    public int Ammo { get; private set; }                       // 남은 탄 (탄창이 없으면 0)
+    public bool HasMagazine => magazine != null;
+    public event Action<int> AmmoChanged;                       // 남은 탄이 바뀜 (UI_Gun)
+    public event Action Fired;                                  // 실제로 탄이 나감 (GameManager가 쏜 수를 셈)
+    public Transform MagazineSocket => magazineSocket;
     public GameObject AimTarget { get; private set; }           // 총구가 겨누는 콜라이더의 오브젝트 (표적 / UI 포함)
     public float AimDistance { get; private set; }              // 겨눈 지점까지 거리 (LaserSight가 씀)
     public Vector3 MuzzleOffset => muzzleOffset;
-    public event Action Fired;                                  // 실제로 탄이 나갔을 때
-    public event Action<int> AmmoChanged;
 
     public bool TryFire();                                      // PlayerController가 호출
+    public void InsertMagazine(Magazine inserted);              // 끼울 자리 근처에서 탄창을 놓았을 때 Magazine이 호출
     public void TryEjectMagazine();                             // PlayerController(A)가 호출. 0발일 때만 뺌
     public void EjectMagazine();                                // GameManager(메뉴 복귀)가 호출. 남은 탄을 버리고 뺌
-    public Transform MagazineSocket => magazineSocket;
-    public void InsertMagazine(Magazine magazine);              // 끼울 자리 근처에서 탄창을 놓았을 때 Magazine이 호출
+    public void SetSkin(Material skin);                         // UI(이스터에그)가 호출. null이면 원래 겉모습
 }
 ```
 
@@ -299,7 +308,7 @@ Interactor별 Interaction Layer Mask는 오른손 = `Gun`, 왼손 = `Magazine`�
 
 Near-Far Interactor의 근접 캐스터(`Sphere Interaction Caster`)는 Physics Layer Mask에 든 콜라이더만 찾습니다. 오른손 = Default + `Gun`, 왼손 = Default + `Magazine`입니다 (M2-b에서 XR Origin 씬 오버라이드로 지정). 빠뜨리면 손을 대도 잡히지 않습니다.
 
-**UI 보드**: Menu, Score, Result 보드는 플레이어 앞 4.1m에 있고, 표적은 그 뒤 5~15m에 나옵니다. `UI` 아래 전체를 `Ignore Raycast` 레이어로 두고(`hitMask`에 없음), START / MENU 버튼만 `Shootable`로 둡니다. 보드 뒤판에는 콜라이더가 없습니다. 예외로 메뉴 왼쪽의 튜토리얼 보드(`UI/Tutorial/Panel`)는 이스터에그를 위해 `Shootable` + BoxCollider(두께 2cm)입니다.
+**UI 보드**: Menu, Countdown, Score, Result 보드는 플레이어 앞 4.1m에 있고, 표적은 그 뒤 5~15m에 나옵니다. `UI` 아래 전체를 `Ignore Raycast` 레이어로 두고(`hitMask`에 없음), START / MENU 버튼만 `Shootable`로 둡니다. 보드 뒤판에는 콜라이더가 없습니다. 예외로 메뉴 왼쪽의 튜토리얼 보드(`UI/Tutorial/Panel`)는 이스터에그를 위해 `Shootable` + BoxCollider(두께 2cm)입니다.
 
 **총 이스터에그**: Ready에서 튜토리얼 보드를 `hitsPerSkin`(10)발 맞힐 때마다 `UI`가 `gun.SetSkin(gunSkins[...])`를 불러 총 몸체가 황금(`M_GunGold`) → 은하(`M_GunGalaxy`) → 용암(`M_GunLava`) → 진주광(`M_GunPearl`) → 원래 모습 순서로 바뀌고 계속 돕니다. 적중 수는 `UI`에 남아 판이 바뀌거나 메뉴로 돌아가도 유지되고, 게임(Play)을 끄면 처음부터입니다. `Gun.SetSkin`은 `bodyRenderers`(Gun, Gate_07, Trigger_Guard_07)의 머티리얼만 바꾸고(null이면 `Awake` 때 기억한 원래 것), 레이저·남은 탄 숫자·총구 화염·탄창은 그대로입니다. 튜토리얼 보드는 Ready에서만 보이므로 게임 중에는 맞힐 수 없습니다. 황금은 URP Lit 금속 머티리얼이고, 나머지 셋은 `Shaders/`의 직접 쓴 셰이더입니다: `QuickDraw/Galaxy`(보라·파랑 성운이 흐르고 별이 반짝임), `QuickDraw/Lava`(검은 바위에 주황 균열이 맥동, 보로노이 경계), `QuickDraw/Pearl`(보는 각도에 따라 파스텔 무지갯빛). 공통 코드는 `GunSkin.cginc`에 있습니다: 무늬를 총의 **오브젝트 좌표(m)**로 계산해 총이 움직여도 무늬가 따라가고(모델 UV는 아틀라스라 무늬용으로 쓰지 않음), 씬 조명 대신 고정된 빛 방향으로 명암을 주며, VR 양눈 렌더링(single-pass instanced)용 인스턴싱·스테레오 매크로를 넣었습니다. 무늬 크기·속도는 각 머티리얼 Inspector에서 바꿉니다.
 
@@ -326,7 +335,8 @@ Assets/QuickDraw/
 ├─ Concept_Doc.md
 ├─ Dev_Design.md                 ← 이 문서
 ├─ Audio/                        Gunfire.mp3 (SoldierSoundsPack/fire.mp3를 옮김), DryFire.wav, MagIn.wav, MagOut.wav
-│                                (SoldierSoundsPack/reload.mp3에서 잘라 만듦, M6)
+│                                (SoldierSoundsPack/reload.mp3에서 잘라 만듦, M6),
+│                                CountdownTick.wav, CountdownGo.wav (XRI 예제 소리를 복사, 2.2)
 ├─ Materials/                    M_Table, M_Target, M_TargetCenter (M3), M_TargetBorder (과녁 테두리, M6), M_Board (M4),
 │                                M_SnapGuide, M_Laser (M1), M_Fx (M6), M_GunGold, M_GunGalaxy, M_GunLava, M_GunPearl (이스터에그)
 ├─ Prefabs/                      Gun.prefab, Magazine.prefab, Target.prefab (M3), HitEffect.prefab (M6)
@@ -382,13 +392,16 @@ QuickDraw
 │     └─ PopupPattern            PopupPattern (targetPrefab = Target.prefab). 실행 중 필요한 만큼 Target을 만들어 돌려 씀
 └─ UI                            UI (보드·버튼·글자 연결), (0, 0, 4.1). 아래 전체 Ignore Raycast, 버튼만 Shootable (M4)
    ├─ Menu                       눈높이 1.6m. Panel(2.4×1.5m, M_Board) + Title "QUICK DRAW" + Hint + StartButton(빨간 원판 0.5m) + 글자
+   ├─ Tutorial                   메뉴 왼쪽. Panel(Shootable + BoxCollider, 이스터에그) + TutorialText(조작 안내 세 줄)
+   ├─ Countdown                  눈높이 1.6m. CountdownText(큰 숫자 3·2·1)만, 뒤판 없음
    ├─ Score                      높이 3.5m(표적 범위 위). Panel(2.6×0.5m) + ScoreText "1:30   점수 0" (남은 시간 m:ss, 점수)
    └─ Result                     눈높이 1.6m. Panel + Title "결과" + ResultText(점수, 명중률 %(맞힌 수/쏜 수)) + MenuButton + 글자
 ```
 
 - 표적은 씬에 미리 두지 않습니다. `PopupPattern`이 필요한 만큼 `Target.prefab`으로 만들어 배치하므로, `GameManager.targetCount`를 바꿔도 씬을 고칠 필요가 없습니다.
 - `PopupPattern`은 게임 중 `GameManager`가 `Begin`을 부른 뒤에만 표적을 내보냅니다.
-- Menu와 Result는 한 단계에 하나만 보이므로 같은 자리(눈높이)를 씁니다.
+- Menu, Countdown, Result는 한 단계에 하나만 보이므로 같은 자리(눈높이)를 씁니다.
+- 튜토리얼 보드 문구는 기획서의 조작 방법에 맞춘 세 줄입니다: "오른손 그립으로 총을 잡고 트리거로 쏩니다" / "왼손으로 탄창을 집어 총 아래에 대고 놓으면 끼워집니다" / "탄을 다 쓰면 A 버튼으로 탄창을 뺍니다".
 - 보드는 빈 부모(스케일 1) 아래에 뒤판(Quad)과 글자를 따로 둡니다. 뒤판을 늘려도 글자가 늘어나지 않게 하기 위해서입니다. 한글은 `NotoSansKR-Regular SDF` 폰트를 씁니다.
 - Build Profiles의 Scene List에는 `QuickDraw.unity`가 들어 있습니다(`ProjectSettings/EditorBuildSettings.asset`).
 
@@ -398,10 +411,10 @@ QuickDraw
 
 | 스크립트 | 지금 상태 | 다음 |
 | --- | --- | --- |
-| `GameManager` | Ready → Playing(90초, 쉬는 시간 없음) → Result → Ready, 게임 중에만 쏜 수·맞힌 수 집계(`Gun.Fired`, `PopupPattern.TargetHit`), 30초마다 단계별 반지름·수·시간으로 `popup.Begin`, 끝나면 `End`, Ready로 갈 때 `gun.EjectMagazine()` (M4) | 그대로 씀 |
+| `GameManager` | Ready → Playing(90초, 쉬는 시간 없음) → Result → Ready, 게임 중에만 쏜 수·맞힌 수 집계(`Gun.Fired`, `PopupPattern.TargetHit`), 30초마다 단계별 반지름·수·시간으로 `popup.Begin`, 끝나면 `End`, Ready로 갈 때 `gun.EjectMagazine()` (M4) | Countdown 단계와 `countdownDuration` (2.2) |
 | `PlayerController` | 발사·탄창 빼기 입력 액션과 PC 바인딩, 오른손(`NearFarInteractor`)에 든 총으로 `TryFire()` / `TryEjectMagazine()` 전달 | 그대로 씀 |
 | `PlayerMoveLock` | XR Origin에 붙음. 시뮬레이터 WASD 이동 막기(FPS 모드), Point-and-Click 끄기. Locomotion 끄기는 씬 설정과 겹쳐서 지웠음 | 그대로 씀 |
-| `Gun` | `effectRange`, `muzzleOffset`, `hitMask`, 쥐고 있을 때만 조준 레이캐스트(`AimTarget` = 맞은 콜라이더, `AimDistance`, 트리거 무시), 기즈모, `TryFire()`(탄이 없으면 딸깍 후 `false`, 쏘면 탄 −1·소리·진동 후 그 순간 다시 겨눠(`Aim()`) 맞은 콜라이더나 그 부모의 `IShootable`에 `Shooted(hit)`), `Ammo`·`HasMagazine`·`AmmoChanged`, `InsertMagazine(Magazine)`(탄창을 `MagazineSocket`에 붙이고 `magazineCapacity`발, 철컥 소리), `TryEjectMagazine()`(0발일 때만 뺌), `EjectMagazine()`(탄창 `Drop`, 남은 탄 버림, 빠지는 소리), `Fired`(맞히기 전에 보냄, M4), 총소리·딸깍·탄창 소리 (M6) | 방아쇠 연출(선택, M6) |
+| `Gun` | `effectRange`, `muzzleOffset`, `hitMask`, 쥐고 있을 때만 조준 레이캐스트(`AimTarget` = 맞은 콜라이더, `AimDistance`, 트리거 무시), 기즈모, `TryFire()`(탄이 없으면 딸깍 후 `false`, 쏘면 탄 −1·소리·진동 후 그 순간 다시 겨눠(`Aim()`) 맞은 콜라이더나 그 부모의 `IShootable`에 `Shooted(hit)`), `Ammo`·`HasMagazine`·`AmmoChanged`, `InsertMagazine(Magazine)`(탄창을 `MagazineSocket`에 붙이고 `magazineCapacity`발, 철컥 소리), `TryEjectMagazine()`(0발일 때만 뺌), `EjectMagazine()`(탄창 `Drop`, 남은 탄 버림, 빠지는 소리), `Fired`(맞히기 전에 보냄, M4), 총소리·딸깍·탄창 소리 (M6) | 그대로 씀. `TryFire`의 `Fired` 순서 주석만 2.1에 맞춤 (START를 쏘면 Playing이 아니라 Countdown으로 넘어감) |
 | `LaserSight` | 잡혀 있을 때 총 로컬 좌표로 조준선과 조준점 표시 | 그대로 씀 |
 | `ReturnToSpawn` | 놓친 뒤 `returnDelay` 지나면 시작 자리로 복귀, 다시 잡으면 취소. 잡힌 채로 꺼지면(씬 전환 등) XRI가 놓기를 보내므로 그때는 시작하지 않음 (`activeInHierarchy`로 판단) | 그대로 씀 |
 | `SnapGuide` | hover 중이고 안 잡혔을 때 손 Attach에 반투명 미리보기. 글자(TextMeshPro) 메시는 복제하지 않음. 총과 탄창(M2-b)에 붙음 | 그대로 씀 |
@@ -410,7 +423,7 @@ QuickDraw
 | `IShootable` | `Shooted(RaycastHit hit)` | 그대로 씀 |
 | `Target` | `Show`·`Hide`·`Fall`, 맞으면 바로 사라짐, `Hit` 이벤트 (M3). 명중 범위는 원판 모양 콜라이더가 정함. 이동 표적은 서 있는 동안 좌우 왕복 | 그대로 씀 |
 | `PopupPattern` | `Begin(radius, count, lifetime, movingChance, volleyInterval)`·`End()`, `lifetime ÷ count`마다 7자리 중 빈 곳(방금 사라진 자리 제외)에 표적(일부는 이동), `lifetime` 뒤 쓰러짐, `volleyInterval`마다 화면을 비운 뒤 `volleyCount`개 일제 등장, 표적은 필요할 때 만들어 돌려 씀, `TargetHit` 이벤트 | 그대로 씀 |
-| `UI` | 단계별 보드 전환(Ready에 튜토리얼 보드 포함), Score·Result 글자, START / MENU를 쏘면 `StartGame()` / `ReturnToMenu()` (M4), 튜토리얼 보드 10발마다 `gun.SetSkin`으로 총 겉모습 순환 (이스터에그) | 그대로 씀 |
+| `UI` | 단계별 보드 전환(Ready에 튜토리얼 보드 포함), Score·Result 글자, START / MENU를 쏘면 `StartGame()` / `ReturnToMenu()` (M4), 튜토리얼 보드 10발마다 `gun.SetSkin`으로 총 겉모습 순환 (이스터에그) | Countdown 보드(큰 숫자, `countdownClip`·`goClip`) (2.2), 튜토리얼 문구 (5장) |
 | `UI_Gun` | `Gun.AmmoChanged`를 받아 총의 자식 `AmmoText`에 남은 탄 숫자 표시 | 그대로 씀 |
 
 프리팹 상태:
@@ -433,14 +446,14 @@ QuickDraw
 | **M3 표적** ✅ | `Target.prefab`(루트 피벗 아래, 자식 `Face`), `Shooted(hit)`(`Gun`이 조준 `RaycastHit`를 넘김), `Target`(원판 모양 콜라이더, 일어나기·쓰러지기), `PopupPattern`, 씬의 4.6m 표적 5개 정리, UI 보드 Ignore Raycast, 표적은 `Shootable` 레이어 | 팝업 패턴이 단독으로 돌아감. 원판 밖은 맞지 않음 |
 | **M4 게임 흐름** ✅ | `GameManager` 단계 전환·점수(게임 중 쏜 것만 셈, `Gun.Fired`), `UI` (START / MENU, 점수, 결과), 메뉴 복귀 때 `EjectMagazine`, Menu 보드 눈높이로 | START → 1분 30초(30초마다 단계) → 결과(점수·명중률), MENU로 메뉴 복귀(총이 비워짐) 후 다시 탄창을 끼우고 START로 새 판 |
 | **M5 단계 난이도** ✅ | `GameManager`의 단계별 `targetCount`·`targetLifetime`·`movingChance`·`volleyInterval`, `PopupPattern` 하나에 좌우 이동 표적(`Target`)과 일제 등장 | 30초마다 표적이 작아지고(지름 1.0 → 0.7 → 0.5m) 동시에 서 있는 수가 3 → 4 → 5개. 2단계부터 일부 표적이 좌우로 움직이고, 3단계에는 화면이 빈 뒤 4개가 한꺼번에 섬 (Play 모드에서 확인) |
-| **M6 다듬기** (다음) | 사운드 ✅(총소리·딸깍·탄창 넣기/빼기, 3.3), 이펙트 ✅(총구 화염 3.3, 표적 타격 2.3), 과녁 무늬 ✅(2.3), Build Profiles에 `QuickDraw.unity` 추가 ✅, 방아쇠 연출, 수치 조정 | 수치는 Inspector에서만 고쳐서 조정. 소리는 동작마다 해당 클립이 재생되고, 쏘면 총구 화염, 표적을 맞히면 그 자리에 섬광과 불꽃 (Play 모드 확인) |
+| **M6 다듬기** (다음) | 사운드 ✅(총소리·딸깍·탄창 넣기/빼기, 3.3), 이펙트 ✅(총구 화염 3.3, 표적 타격 2.3), 과녁 무늬 ✅(2.3), Build Profiles에 `QuickDraw.unity` 추가 ✅, 시작 카운트다운(2.2), 튜토리얼 문구(5장), 수치 조정 | 수치는 Inspector에서만 고쳐서 조정. 소리는 동작마다 해당 클립이 재생되고, 쏘면 총구 화염, 표적을 맞히면 그 자리에 섬광과 불꽃 (Play 모드 확인). START를 쏘면 눈높이에 3·2·1이 소리와 함께 나온 뒤 표적이 나오고 Score 보드가 1:30부터 줄어듦. 튜토리얼 보드에 세 줄이 넘치지 않음 |
 
 ### 7.1 남은 확인·정리
 
 아직 하지 않은 것입니다. 자동 테스트가 없으므로, 앞으로 고친 동작은 Play 모드나 헤드셋에서 확인합니다.
 
 - **커밋**: 직접 합니다. Unity가 스스로 바꾼 파일(`OpenXRPackageSettings.asset`, `OpenXR Editor Settings.asset`, `XRDeviceSimulatorSettings.asset`, 폰트 SDF, `ProjectSettings/Packages/*`, `ProjectSettings/URPProjectSettings.asset`)은 뺍니다.
-- **실제 기기 확인** (시뮬레이터 또는 헤드셋): 트리거·A 버튼(꾹 눌러도 1발, 탄이 남으면 안 빠짐), 진동 세기, `GunAttach`(손잡이 위치)와 `AmmoText`(남은 탄 숫자) 위치, 탄창 끼우기(가이드가 보이는 거리 `insertDistance` 10cm, 놓아서 끼우기), 손으로 밀어낸 자리 탄창의 보충, 표적 크기·과녁 무늬·일어나는 속도, UI 보드 글자 크기와 Score 보드(3.5m)를 올려다보는 각도, 90초 한 판의 실제 난이도.
+- **실제 기기 확인** (시뮬레이터 또는 헤드셋): 트리거·A 버튼(꾹 눌러도 1발, 탄이 남으면 안 빠짐), 진동 세기, `GunAttach`(손잡이 위치)와 `AmmoText`(남은 탄 숫자) 위치, 탄창 끼우기(가이드가 보이는 거리 `insertDistance` 10cm, 놓아서 끼우기), 손으로 밀어낸 자리 탄창의 보충, 표적 크기·과녁 무늬·일어나는 속도, UI 보드 글자 크기와 Score 보드(3.5m)를 올려다보는 각도, 카운트다운 숫자 크기와 소리(`CountdownTick`·`CountdownGo`는 들어 보지 않고 고른 것이라, 직접 들어 보고 어울리지 않으면 바꿈), 90초 한 판의 실제 난이도.
 
 ---
 
@@ -448,7 +461,8 @@ QuickDraw
 
 | 규칙 (기획서) | 담당 | 확인 방법 |
 | --- | --- | --- |
-| 한 판 1분 30초, 쉬는 시간 없음 | `GameManager` (`gameDuration`) | START부터 결과 화면까지 90초, Score 보드는 1:30부터 줄어드는 시간과 점수만 |
+| START 뒤 3·2·1 카운트다운, 그동안 쏜 탄은 안 셈 | `GameManager` (`countdownDuration`), `UI` | START를 쏘면 눈높이에 3·2·1이 1초씩 소리와 함께 나오고, 끝나면 표적이 나옴. 카운트다운 중 쏜 탄은 결과의 쏜 수에 없음 |
+| 한 판 1분 30초, 쉬는 시간 없음 | `GameManager` (`gameDuration`) | 카운트다운이 끝난 뒤부터 결과 화면까지 90초, Score 보드는 1:30부터 줄어드는 시간과 점수만 |
 | 맞히면 +10점, 감점 없음 | `GameManager.scorePerHit` | 빗나가도 점수 그대로 |
 | 탄창 10발, 몇 개든 가져옴 | `Gun.magazineCapacity`, `MagazineSpawner` | 탄창을 계속 집거나 손·총으로 밀어내도 테이블 자리가 다시 채워짐 |
 | 탄을 다 써야 A로 탄창을 뺄 수 있음 | `Gun.TryEjectMagazine` | 1발이라도 남으면 A를 눌러도 안 빠짐, 0발이면 빠짐 |
@@ -461,7 +475,7 @@ QuickDraw
 | 30초마다 작아지고, 많아지고, 빨리 사라짐 (서 있던 표적은 그대로) | `GameManager` (`targetRadius`, `targetCount`, `targetLifetime`) | 0~30·30~60·60~90초에 동시에 서 있는 수 3·4·5개, 지름 1.0·0.7·0.5m. 바뀌는 순간 큰 표적과 작은 표적이 잠깐 섞임 |
 | 2단계부터 좌우로 움직이는 표적이 섞임 | `GameManager.movingChance`, `Target` (`moveWidth`, `moveSpeed`) | 1단계에는 모두 제자리, 30초 뒤부터 일부가 자리 양옆 1m를 왕복 |
 | 3단계에는 일제 등장 | `GameManager.volleyInterval`, `PopupPattern` (`volleyCount`, `volleyLifetime`) | 60초 뒤부터 가끔 화면이 비었다가 4개가 한꺼번에 서고 2.5초 뒤 쓰러짐 |
-| START 표적으로 시작, 결과 화면 MENU 표적으로 메뉴 복귀 | `UI` (`IShootable`) | START를 쏘면 게임 시작, MENU를 쏘면 메뉴로. 둘 다 명중률에는 안 들어감 |
+| START 표적으로 시작, 결과 화면 MENU 표적으로 메뉴 복귀 | `UI` (`IShootable`) | START를 쏘면 카운트다운 뒤 게임 시작, MENU를 쏘면 메뉴로. 둘 다 명중률에는 안 들어감 |
 | 결과 화면은 점수·명중률과 MENU 버튼만 | `UI` | 90초 뒤 Result 보드 내용 |
 | (이스터에그) 튜토리얼 보드 10발마다 총 겉모습이 황금 → 은하 → 용암 → 진주광 → 원래 | `UI.CountTutorialHit`, `Gun.SetSkin` | 메뉴에서 튜토리얼 보드를 10·20·30·40·50발 맞힘 (Play 모드 확인), 판이 바뀌어도 유지 |
 | 매 판 빈 총으로 시작 | 씬 구성 (`MagazineSocket` 비어 있음), `GameManager` (→ Ready에서 `gun.EjectMagazine()`) | Play 직후와 MENU를 쏜 뒤 0발이고 방아쇠는 딸깍. 꽂혀 있던 탄창은 떨어짐 |
@@ -480,6 +494,7 @@ QuickDraw
 1. **표적 크기와 명중 처리**: 기획서에 없어 아래 기본값으로 정했습니다.
    - 30초마다 반지름이 줄어드는 규칙(0.5 / 0.35 / 0.25)은 그 단계에 새로 나오는 표적에 적용합니다.
    - 맞힌 표적은 바로 사라집니다.
-2. **기획서에 수치가 없는 값**: 7자리 좌표, 손맛 값, 탄창 가이드가 보이는 거리(`insertDistance`)는 제안값입니다(1장 *기울임* 값). 단계별 동시 수·서 있는 시간(3·4·5개, 1.5·1.2·1초)은 기획서에 넣었지만 직접 해 보고 `GameManager` Inspector에서 조정합니다. 이동 표적(비율 40%, 폭 2m, 1.5m/s)과 일제 등장(8초 간격, 4개, 2.5초) 수치도 제안값입니다.
-3. **UI 버튼**: 기획서에는 START와 MENU만 있습니다. 종료·일시정지 버튼이 필요하면 기획서에 추가합니다.
-4. **놓은 탄창** (확정): 탄창은 탄을 다 써야 A로 뺄 수 있고, 뺀 탄창은 5초 뒤 사라집니다. 떨어뜨린 새 탄창은 지우지 않고 바닥에 남겨 다시 주울 수 있게 합니다. 테이블에서 계속 가져와 떨어뜨리거나 자리 탄창을 밀어내면 바닥·테이블에 쌓일 수 있으니, 많아서 문제가 되면 다시 정합니다. 탄창은 쥔 채 빈 총 아래에 대서 가이드가 보일 때 놓으면 끼워집니다. 기획서에도 반영했습니다.
+2. **기획서에 수치가 없는 값**: 7자리 좌표, 손맛 값, 탄창 가이드가 보이는 거리(`insertDistance`), 이동 표적 속도(1.5m/s), 일제 등장 간격(8초)은 제안값입니다(1장 *기울임* 값). 기획서에 있는 단계별 수치도 직접 해 보고 `GameManager`·`PopupPattern`·`Target` Inspector에서 조정합니다.
+3. **UI 버튼과 결과 화면** (확정): 버튼은 START와 MENU만 둡니다. 게임 중 일시정지·포기 버튼은 없고, 헤드셋을 벗거나 시스템 메뉴를 열 때 시간을 멈추는 처리도 하지 않습니다. 결과 화면에는 최고 기록 없이 이번 판 점수와 명중률만 나옵니다.
+4. **놓은 탄창** (확정): 탄창은 탄을 다 써야 A로 뺄 수 있고, 뺀 탄창은 5초 뒤 사라집니다. 떨어뜨린 새 탄창은 지우지 않고 바닥에 남겨 다시 주울 수 있게 합니다. 테이블에서 계속 가져와 떨어뜨리거나 자리 탄창을 밀어내 바닥·테이블에 쌓여도, 판이 바뀌어도 지우지 않습니다. 탄창은 쥔 채 빈 총 아래에 대서 가이드가 보일 때 놓으면 끼워집니다. 기획서에도 반영했습니다.
+5. **배경 음악** (보류): 메뉴와 게임 내내 한 곡을 반복합니다. 프로젝트에 쓸 음악 파일이 없어, 파일을 받으면 넣고 기획서에도 반영합니다.
