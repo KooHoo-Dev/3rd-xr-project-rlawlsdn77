@@ -46,6 +46,7 @@ namespace QuickDraw.Scripts
         private XRGrabInteractable grab;
         private Material[] originalMaterials;   // 몸체의 원래 머티리얼 (SetSkin(null)로 되돌림)
         private Magazine magazine;      // 꽂혀 있는 탄창
+        private int bonusCapacity;      // 이번 판 콤보로 늘어난 탄 수 (끼우는 탄창에 더함)
 
         private Vector3 MuzzleWorldPos => transform.TransformPoint(muzzleOffset);
 
@@ -65,7 +66,8 @@ namespace QuickDraw.Scripts
             PlayClip(gunfireClip);
             if (muzzleFlash != null) muzzleFlash.Play();
             SendHaptic();
-            // 맞히기보다 먼저 알린다. 순서가 바뀌면 START를 쏜 탄이 게임이 시작된 뒤에 세어진다
+            // 맞히기보다 먼저 알린다. 그래서 쏜 탄은 맞힌 대상이 단계를 바꾸기 전의 단계에서 세어지고,
+            // GameManager는 이 탄이 표적에 맞았는지(TargetHit가 뒤따르는지)로 빗나감을 안다
             Fired?.Invoke();
 
             // 지금 겨눈 대상이나 그 부모가 맞을 수 있는 물체면 맞힌다
@@ -85,7 +87,7 @@ namespace QuickDraw.Scripts
             if (HasMagazine) return;
             magazine = inserted;
             inserted.AttachTo(magazineSocket);
-            SetAmmo(magazineCapacity);
+            SetAmmo(magazineCapacity + bonusCapacity);
             PlayClip(magazineInClip);
             Debug.Log("[Gun] 탄창 끼움");
         }
@@ -111,6 +113,20 @@ namespace QuickDraw.Scripts
             SetAmmo(0);
             PlayClip(magazineOutClip);
             Debug.Log("[Gun] 탄창 제거");
+        }
+
+        // GameManager(콤보 보너스)가 호출한다. 지금 꽂힌 탄창에 바로 amount발을 더하고, 이 판에 앞으로 끼울 탄창도 amount발 늘린다
+        public void AddCapacity(int amount)
+        {
+            bonusCapacity += amount;
+            if (HasMagazine) SetAmmo(Ammo + amount);
+            Debug.Log($"[Gun] 콤보 보너스 +{amount}발 (탄창 {magazineCapacity + bonusCapacity}발)");
+        }
+
+        // GameManager(새 판 시작)가 호출한다. 앞으로 끼울 탄창을 기본 발수로 되돌린다 (지금 탄은 그대로)
+        public void ResetCapacity()
+        {
+            bonusCapacity = 0;
         }
 
         // UI(튜토리얼 이스터에그)가 호출한다. 몸체를 skin으로 칠하고, null이면 원래 머티리얼로 되돌린다

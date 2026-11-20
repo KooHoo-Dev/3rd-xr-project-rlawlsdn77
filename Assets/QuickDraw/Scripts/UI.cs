@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace QuickDraw.Scripts
 {
-    // World Space UI. 단계에 맞는 보드(Menu + 튜토리얼 / Score / Result)만 보인다.
+    // World Space UI. 단계에 맞는 보드(Menu + 튜토리얼 / Countdown / Score / Result)만 보인다.
     // 버튼(START / MENU)은 총으로 쏴서 누른다: 버튼 콜라이더는 Shootable 레이어이고, 맞으면 Gun이 이 스크립트의 Shooted를 부른다.
     // 튜토리얼 보드도 쏠 수 있다: hitsPerSkin발마다 총 겉모습이 바뀌는 이스터에그.
     public class UI : MonoBehaviour, IShootable
@@ -13,6 +13,7 @@ namespace QuickDraw.Scripts
 
         [Header("보드")]
         [SerializeField] private GameObject menuBoard;      // 타이틀 + START (Ready)
+        [SerializeField] private GameObject countdownBoard; // 큰 숫자 3·2·1 (Countdown)
         [SerializeField] private GameObject scoreBoard;     // 남은 시간(m:ss) / 점수 (Playing)
         [SerializeField] private GameObject resultBoard;    // 점수, 명중률 + MENU (Result)
 
@@ -21,8 +22,13 @@ namespace QuickDraw.Scripts
         [SerializeField] private Collider menuButton;
 
         [Header("글자")]
+        [SerializeField] private TMP_Text countdownText;
         [SerializeField] private TMP_Text scoreText;
         [SerializeField] private TMP_Text resultText;
+
+        [Header("카운트다운 소리 (머리 위치에서 재생, 비어 있으면 소리 없음)")]
+        [SerializeField] private AudioClip countdownClip;   // 숫자가 바뀔 때 (CountdownTick)
+        [SerializeField] private AudioClip goClip;          // 게임이 시작될 때 (CountdownGo)
 
         [Header("튜토리얼")]
         [SerializeField] private GameObject tutorialBoard;  // 조작 안내 (Ready)
@@ -33,7 +39,7 @@ namespace QuickDraw.Scripts
         [SerializeField] private Material[] gunSkins;           // 차례로 바뀌는 총 겉모습 (황금, 은하, 용암, 진주광). 다 돌면 원래 모습
         [SerializeField] private int hitsPerSkin = 10;          // 이만큼 맞힐 때마다 다음 겉모습
 
-        private int shownSeconds = -1;      // Score 보드에 지금 쓰인 남은 시간 (바뀔 때만 글자를 다시 만듦)
+        private int shownSeconds = -1;      // Countdown / Score 보드에 지금 쓰인 남은 시간 (바뀔 때만 글자를 다시 만듦)
         private int shownScore = -1;
         private int tutorialHits;           // 튜토리얼 보드를 맞힌 수 (게임을 켜 둔 동안 이어짐)
 
@@ -59,12 +65,8 @@ namespace QuickDraw.Scripts
 
         private void Update()
         {
-            if (!scoreBoard.activeSelf) return;
-            int seconds = Mathf.CeilToInt(gameManager.RemainingTime);
-            if (seconds == shownSeconds && gameManager.Score == shownScore) return;
-            shownSeconds = seconds;
-            shownScore = gameManager.Score;
-            scoreText.text = $"{seconds / 60}:{seconds % 60:00}   점수 {shownScore}";
+            if (countdownBoard.activeSelf) ShowCountdown();
+            if (scoreBoard.activeSelf) ShowScore();
         }
 
         #endregion
@@ -75,11 +77,38 @@ namespace QuickDraw.Scripts
             shownSeconds = -1;  // 새 판이 시작되면 글자를 다시 쓴다
             menuBoard.SetActive(phase == GameManager.GamePhase.Ready);
             tutorialBoard.SetActive(phase == GameManager.GamePhase.Ready);
+            countdownBoard.SetActive(phase == GameManager.GamePhase.Countdown);
             scoreBoard.SetActive(phase == GameManager.GamePhase.Playing);
             resultBoard.SetActive(phase == GameManager.GamePhase.Result);
 
+            if (phase == GameManager.GamePhase.Playing) PlayAtHead(goClip);
             if (phase == GameManager.GamePhase.Result)
                 resultText.text = $"점수 {gameManager.Score}\n명중률 {Mathf.RoundToInt(gameManager.Accuracy * 100f)}% ({gameManager.HitCount}/{gameManager.ShotCount})";
+        }
+
+        // 남은 카운트다운을 올림한 숫자(3 → 2 → 1)를 보이고, 숫자가 바뀔 때마다 소리를 낸다
+        private void ShowCountdown()
+        {
+            int seconds = Mathf.CeilToInt(gameManager.RemainingTime);
+            if (seconds == shownSeconds) return;
+            shownSeconds = seconds;
+            countdownText.text = seconds.ToString();
+            PlayAtHead(countdownClip);
+        }
+
+        private void ShowScore()
+        {
+            int seconds = Mathf.CeilToInt(gameManager.RemainingTime);
+            if (seconds == shownSeconds && gameManager.Score == shownScore) return;
+            shownSeconds = seconds;
+            shownScore = gameManager.Score;
+            scoreText.text = $"{seconds / 60}:{seconds % 60:00}   점수 {shownScore}";
+        }
+
+        // 보드는 4.1m 앞이라 그 자리에서 내면 작게 들리므로 플레이어 머리(메인 카메라) 위치에서 낸다
+        private void PlayAtHead(AudioClip clip)
+        {
+            if (clip != null) AudioSource.PlayClipAtPoint(clip, Camera.main.transform.position);
         }
 
         // 튜토리얼 보드를 hitsPerSkin발 맞힐 때마다 총 겉모습이 gunSkins 순서대로 바뀌고, 다 돌면 원래 모습으로 돌아간다
