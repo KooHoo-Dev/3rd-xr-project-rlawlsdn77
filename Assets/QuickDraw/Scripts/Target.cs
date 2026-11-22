@@ -4,14 +4,15 @@ using UnityEngine;
 
 namespace QuickDraw.Scripts
 {
-    // 표적. 루트 피벗은 아래 끝(쓰러지는 축)이고 원판은 자식 Face(원판 모양 콜라이더). PopupPattern이 Show / Hide / Fall로 부린다.
+    // 표적. 루트 피벗은 아래 끝(일어나는 축)이고 원판은 자식 Face(원판 모양 콜라이더). PopupPattern이 Show / Hide / Shrink로 부린다.
     public class Target : MonoBehaviour, IShootable
     {
         // 서 있는 동안의 움직임
         public enum Motion { None, Horizontal, Vertical, Diagonal, Approach }
 
         [Header("표적")]
-        [SerializeField] private float riseTime = 0.2f;     // 일어나기·쓰러지기에 걸리는 시간 (초)
+        [SerializeField] private float riseTime = 0.2f;     // 일어나는 데 걸리는 시간 (초)
+        [SerializeField] private float shrinkTime = 0.4f;   // 작아지며 사라지는 데 걸리는 시간 (초). 이 동안에도 맞힐 수 있음
         [SerializeField] private ParticleSystem hitEffect;  // 맞은 자리에 만드는 효과 (HitEffect.prefab, 끝나면 스스로 사라짐)
 
         [Header("이동 (Horizontal / Vertical / Diagonal)")]
@@ -21,12 +22,13 @@ namespace QuickDraw.Scripts
         [Header("다가오기 (Approach)")]
         [SerializeField] private float approachSpeed = 3f;  // 플레이어 쪽으로 다가오는 속도 (m/s)
 
-        public bool IsStanding { get; private set; }        // 서 있어 맞힐 수 있음 (쓰러지는 중이면 false)
+        public bool IsStanding { get; private set; }        // 서 있음 (작아지기 시작하면 false. 작아지는 중에도 맞힐 수는 있음)
         public Motion CurrentMotion { get; private set; }
         public event Action<Target, Vector3> Hit;           // 맞음 (맞은 지점). 맞은 표적은 바로 사라진 뒤
 
         private Quaternion facing;      // 서 있을 때 회전 (+Z = 플레이어 쪽)
         private Coroutine motion;
+        private bool shrinking;         // 작아지며 사라지는 중
         private Vector3 basePosition;   // 움직임의 가운데 (루트 위치)
         private Vector3 moveDirection;  // 왕복 방향 (단위 벡터)
         private float moveSpeed;
@@ -52,29 +54,33 @@ namespace QuickDraw.Scripts
 
             gameObject.SetActive(true);
             IsStanding = true;
-            Rotate(-90f, 0f, false);
+            shrinking = false;
+            Play(RiseRoutine());
         }
 
         // 바로 사라진다 (맞았을 때)
         public void Hide()
         {
             IsStanding = false;
+            shrinking = false;
             if (motion != null) StopCoroutine(motion);
             motion = null;
             gameObject.SetActive(false);
         }
 
-        // 뒤로 쓰러진 뒤 사라진다 (서 있는 시간이 다 됐거나, 다가와서 가까워졌거나, 게임이 끝났을 때)
-        public void Fall()
+        // 원판 중심을 향해 작아지며 사라진다 (서 있는 시간이 다 됐거나, 다가와서 가까워졌거나, 게임이 끝났을 때)
+        // 콜라이더도 같이 작아지고, 다 사라지기 전에 맞히면 맞은 것으로 친다
+        public void Shrink()
         {
             if (!IsStanding) return;
             IsStanding = false;
-            Rotate(0f, -90f, true);
+            shrinking = true;
+            Play(ShrinkRoutine());
         }
 
         public void Shooted(RaycastHit hit)
         {
-            if (!IsStanding) return;
+            if (!IsStanding && !shrinking) return;
             Debug.Log($"[Target] 명중: {name}");
             // 맞은 면에서 플레이어 쪽(hit.normal)으로 튀게 세운다
             if (hitEffect != null) Instantiate(hitEffect, hit.point, Quaternion.LookRotation(hit.normal));
@@ -84,7 +90,7 @@ namespace QuickDraw.Scripts
 
         #region Unity Methods
 
-        // 서 있는 동안 움직인다. 쓰러지기 시작하면 그 자리에 멈춘다
+        // 서 있는 동안 움직인다. 작아지기 시작하면 그 자리에 멈춘다
         private void Update()
         {
             if (!IsStanding || CurrentMotion == Motion.None) return;
@@ -112,23 +118,46 @@ namespace QuickDraw.Scripts
             return Vector3.zero;
         }
 
-        // 루트(아래 끝)를 축으로 from → to 각도(X축, 음수 = 플레이어 반대쪽으로 누움)로 돌린다
-        private void Rotate(float from, float to, bool hideAtEnd)
+        // 하던 연출(일어나기·작아지기)을 멈추고 새 연출을 시작한다
+        private void Play(IEnumerator routine)
         {
             if (motion != null) StopCoroutine(motion);
-            motion = StartCoroutine(RotateRoutine(from, to, hideAtEnd));
+            motion = StartCoroutine(routine);
         }
 
-        private IEnumerator RotateRoutine(float from, float to, bool hideAtEnd)
+        // 루트(아래 끝)를 축으로 뒤로 누운 상태(-90°)에서 일으켜 세운다
+        private IEnumerator RiseRoutine()
         {
             for (float t = 0f; t < riseTime; t += Time.deltaTime)
             {
-                transform.rotation = facing * Quaternion.Euler(Mathf.Lerp(from, to, t / riseTime), 0f, 0f);
+                transform.rotation = facing * Quaternion.Euler(Mathf.Lerp(-90f, 0f, t / riseTime), 0f, 0f);
                 yield return null;
             }
-            transform.rotation = facing * Quaternion.Euler(to, 0f, 0f);
+            transform.rotation = facing;
             motion = null;
-            if (hideAtEnd) gameObject.SetActive(false);
+        }
+
+        // 원판 중심은 그대로 두고 크기를 0까지 줄인다. 처음엔 천천히, 끝으로 갈수록 빠르게 (자식 콜라이더도 같이 줄어듦)
+        private IEnumerator ShrinkRoutine()
+        {
+            Vector3 center = transform.TransformPoint(Vector3.up * 0.5f);  // 원판 중심 (루트 = 아래 끝, 크기 = 지름)
+            Vector3 up = transform.up;
+            float startSize = transform.localScale.x;
+            for (float t = 0f; t < shrinkTime; t += Time.deltaTime)
+            {
+                float k = t / shrinkTime;
+                SetSize(center, up, startSize * (1f - k * k));
+                yield return null;
+            }
+            shrinking = false;
+            motion = null;
+            gameObject.SetActive(false);
+        }
+
+        private void SetSize(Vector3 center, Vector3 up, float size)
+        {
+            transform.localScale = Vector3.one * size;
+            transform.position = center - up * (size / 2f);
         }
     }
 }

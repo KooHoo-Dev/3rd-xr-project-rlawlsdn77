@@ -13,7 +13,7 @@ namespace QuickDraw.Scripts
         [Header("끼우기")]
         [SerializeField] private float insertDistance = 0.1f;   // 끼울 자리에서 이만큼 안에 오면 가이드가 보이고, 놓으면 끼워짐 (m)
 
-        [Header("다 쓴 탄창")]
+        [Header("뺀 탄창")]
         [SerializeField] private float droppedLifetime = 5f;    // 총에서 빼낸 뒤 사라지기까지 (초)
 
         // 씬의 총. 탄창마다 씬을 뒤지지 않도록 모든 탄창이 같이 쓰고, 씬이 바뀌어 파괴되면 다시 찾는다
@@ -34,13 +34,13 @@ namespace QuickDraw.Scripts
             transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
         }
 
-        // Gun.EjectMagazine이 부른다. 총에서 떨어뜨리고, droppedLifetime 뒤 지운다 (잡기는 꺼진 그대로라 다시 꽂아 10발 채우기 불가)
+        // Gun.EjectMagazine이 부른다. 총에서 떨어뜨리고, droppedLifetime 뒤 지운다 (잡기는 꺼진 그대로라 다시 꽂아 10발 채우기 불가, 남은 탄도 같이 버려짐)
         public void Drop()
         {
             transform.SetParent(null, true);
             body.isKinematic = false;
             Destroy(gameObject, droppedLifetime);
-            Debug.Log($"[Magazine] 다 쓴 탄창: {droppedLifetime}초 뒤 제거");
+            Debug.Log($"[Magazine] 뺀 탄창: {droppedLifetime}초 뒤 제거");
         }
 
         #region Unity Methods

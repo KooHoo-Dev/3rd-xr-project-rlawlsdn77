@@ -92,27 +92,16 @@ namespace QuickDraw.Scripts
             Debug.Log("[Gun] 탄창 끼움");
         }
 
-        // PlayerController(A 버튼)가 호출한다. 탄을 다 쓴 탄창만 뺄 수 있다
-        public void TryEjectMagazine()
-        {
-            if (!HasMagazine) return;
-            if (Ammo > 0)
-            {
-                Debug.Log($"[Gun] 탄이 남아 있어 탄창을 뺄 수 없음 ({Ammo}발)");
-                return;
-            }
-            EjectMagazine();
-        }
-
-        // GameManager(메뉴 복귀)가 호출한다. 탄이 남아 있어도 빼고, 남은 탄은 버린다. 뺀 탄창은 떨어진다
+        // PlayerController(A 버튼)와 GameManager(메뉴 복귀)가 호출한다. 탄이 남아 있어도 빼고, 남은 탄은 버린다. 뺀 탄창은 떨어진다
         public void EjectMagazine()
         {
             if (!HasMagazine) return;
+            int discarded = Ammo;
             magazine.Drop();
             magazine = null;
             SetAmmo(0);
             PlayClip(magazineOutClip);
-            Debug.Log("[Gun] 탄창 제거");
+            Debug.Log($"[Gun] 탄창 제거 (버린 탄 {discarded}발)");
         }
 
         // GameManager(콤보 보너스)가 호출한다. 지금 꽂힌 탄창에 바로 amount발을 더하고, 이 판에 앞으로 끼울 탄창도 amount발 늘린다

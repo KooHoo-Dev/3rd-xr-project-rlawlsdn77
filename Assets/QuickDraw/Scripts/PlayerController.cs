@@ -66,7 +66,7 @@ namespace QuickDraw.Scripts
             if (RightHand.firstInteractableSelected.transform.TryGetComponent(out Gun heldGun) == false) return;
 
             if (ShootAction.WasPressedThisFrame()) heldGun.TryFire();
-            if (MagOutAction.WasPressedThisFrame()) heldGun.TryEjectMagazine();   // 탄을 다 쓴 탄창만 빠진다
+            if (MagOutAction.WasPressedThisFrame()) heldGun.EjectMagazine();      // 탄이 남아 있어도 빠지고, 남은 탄은 버려진다
         }
 
         #endregion

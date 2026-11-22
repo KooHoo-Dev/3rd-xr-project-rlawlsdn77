@@ -9,7 +9,7 @@ Nov 17, 2026 · 기준 문서: [Concept_Doc.md](Concept_Doc.md)
 - **코드 작성 원칙**: 코드는 `/karpathy-skill:karpathy-skill` 스킬을 참조해서 간결하게 수정합니다. 가정은 먼저 밝히고, 필요한 만큼만 쓰고, 요청한 부분만 고치고, 확인 방법을 정한 뒤 끝냅니다.
 - **설계 원칙**: 코드는 최대한 간결하게 씁니다. 수치는 그 값을 쓰는 스크립트의 Inspector 필드(`[SerializeField]` + 기본값)로 두고, 데이터 파일이나 데이터 전용 클래스는 만들지 않습니다. 입력 바인딩은 코드에서 `AddBinding`으로 겁니다.
 - **손 역할**: 총은 항상 오른손, 탄창은 항상 왼손으로 잡습니다.
-- **상호작용**: 잡기는 XRI(Near-Far Interactor 근접)가, 발사와 탄창 빼기 입력은 `PlayerController`가 맡아 `Gun`에 전달합니다. 쥔 탄창을 빈 총 아래에 대면 끼워질 자리에 반투명 가이드가 보이고, 손을 놓으면 끼워져 바로 쏠 수 있습니다. A 버튼은 탄을 다 쓴 탄창만 뺍니다 (3.5).
+- **상호작용**: 잡기는 XRI(Near-Far Interactor 근접)가, 발사와 탄창 빼기 입력은 `PlayerController`가 맡아 `Gun`에 전달합니다. 쥔 탄창을 빈 총 아래에 대면 끼워질 자리에 반투명 가이드가 보이고, 손을 놓으면 끼워져 바로 쏠 수 있습니다. A 버튼은 탄이 남아 있어도 탄창을 빼고, 남은 탄은 버립니다 (3.5).
 - **진행 상황**: M0~M5(기반, 총, 탄창, 표적, 게임 흐름, 단계 난이도) 완료. 한 판은 START 뒤 3초 카운트다운, 이어서 쉬는 시간 없는 90초입니다. 표적은 단계마다 넓어지는 범위 안 무작위 위치에 나오고, 1단계 팝업 → 2단계 이동 표적·웨이브 → 3단계 다가오는 표적으로 패턴이 늘어납니다. 5연속 명중마다 탄창이 5발씩 늘어나는 콤보가 있습니다(M7). 자동 테스트는 두지 않고 Play 모드(시뮬레이터)나 헤드셋에서 직접 확인하며, 실제 기기 확인이 남았습니다(7.1). 다음은 M6(다듬기)입니다 (7장).
 
 ---
@@ -30,7 +30,7 @@ Nov 17, 2026 · 기준 문서: [Concept_Doc.md](Concept_Doc.md)
 | `LaserSight` | `width` (색은 `M_Laser` 머티리얼, 빨강) | *0.003m* |
 | | `dotScale` (거리 1m당 조준점 지름) | *0.005* (15m에서 7.5cm) |
 | `ReturnToSpawn` | `returnDelay` | 2초 |
-| `Magazine` | `droppedLifetime` (다 쓴 탄창을 뺀 뒤 사라지기까지) | 5초 |
+| `Magazine` | `droppedLifetime` (탄창을 뺀 뒤 사라지기까지) | 5초 |
 | | `insertDistance` (끼울 자리에서 이만큼 안이면 가이드, 놓으면 끼움) | *0.1m* |
 | `MagazineSpawner` | `respawnDelay` (자리가 빈 뒤 새 탄창이 놓이기까지) | *0.3초* |
 | | `leaveDistance` (놓은 탄창이 자리에서 수평으로 이만큼 넘게 벗어나면 빈 자리) | *0.05m* |
@@ -60,7 +60,7 @@ Nov 17, 2026 · 기준 문서: [Concept_Doc.md](Concept_Doc.md)
 
 - 좌표는 월드 좌표입니다. XR Origin이 (0, 0, 0)에서 +Z를 보므로 z가 곧 정면 거리입니다 (5~15m). 각도는 원점에서 +Z 기준 좌우입니다.
 - 범위 값(`…Range`, `distanceRange` 등)은 `Vector2`(최소, 최대)로 둡니다.
-- 기획서 값은 3·2·1 카운트다운, 한 판 1분 30초(쉬는 시간 없음, 30초마다 단계), +10점, 5연속마다 +5발, 탄창 10발, 놓친 총 복귀 2초, 다 쓴 탄창 5초 뒤 제거, 표적 거리 5~15m·높이 1~2.5m, 단계별 크기·좌우 범위·동시 수·서 있는 시간(±30%), 새 표적까지 0.2~0.8초, 방금 사라진 곳 2m, 이동 표적(약 40%, 1~2.5m/s, 1~3m), 웨이브(약 10초마다 3·5개, 2.5초), 다가오는 표적(약 20%, 12~15m에서 3m/s, 5m에서 쓰러짐), 콤보 숫자 약 0.8초입니다.
+- 기획서 값은 3·2·1 카운트다운, 한 판 1분 30초(쉬는 시간 없음, 30초마다 단계), +10점, 5연속마다 +5발, 탄창 10발, 놓친 총 복귀 2초, 뺀 탄창 5초 뒤 제거, 표적 거리 5~15m·높이 1~2.5m, 단계별 크기·좌우 범위·동시 수·서 있는 시간(±30%), 새 표적까지 0.2~0.8초, 방금 사라진 곳 2m, 이동 표적(약 40%, 1~2.5m/s, 1~3m), 웨이브(약 10초마다 3·5개, 2.5초), 다가오는 표적(약 20%, 12~15m에서 3m/s, 5m에서 쓰러짐), 콤보 숫자 약 0.8초입니다.
 
 ### 1.1 입력 바인딩
 
@@ -80,9 +80,9 @@ Nov 17, 2026 · 기준 문서: [Concept_Doc.md](Concept_Doc.md)
 | 스크립트 | 하는 일 | 가진 값 |
 | --- | --- | --- |
 | `GameManager` | 단계 전환(`StartGame()`·`ReturnToMenu()`), 카운트다운·게임 시간, 30초마다 표적 단계(`popup.Begin(단계)`), 점수·명중률·콤보 집계, 콤보 보너스(`gun.AddCapacity`), `PopupPattern` 시작·종료, 메뉴로 돌아갈 때 총 비우기. `PhaseChanged`, `ComboHit` 이벤트 | `Phase`(`GamePhase`: Ready·Countdown·Playing·Result), `RemainingTime`(Countdown이면 카운트다운, Playing이면 게임의 남은 시간), `Score`, `ShotCount`, `HitCount`, `Accuracy`, `Combo` |
-| `PlayerController` | 입력. 오른손 트리거 → 든 총의 `TryFire()`, 오른손 A → `TryEjectMagazine()` | 없음 (든 총은 오른손 `NearFarInteractor`에서 바로 읽음) |
+| `PlayerController` | 입력. 오른손 트리거 → 든 총의 `TryFire()`, 오른손 A → `EjectMagazine()` | 없음 (든 총은 오른손 `NearFarInteractor`에서 바로 읽음) |
 | `PlayerMoveLock` | PC 테스트용 XR 시뮬레이터에서 제자리를 지킴: FPS 모드의 WASD 이동과 Point-and-Click을 끔 (헤드셋 이동은 씬 설정으로 이미 막혀 있음) | 시뮬레이터 원래 이동 배율, Point-and-Click 사용 여부 |
-| `Gun` | `TryFire()`·`TryEjectMagazine()`(A, 0발일 때만)·`EjectMagazine()`(메뉴 복귀, 항상)·`InsertMagazine()`, 콤보 보너스 `AddCapacity(n)`(지금 탄 +n, 앞으로 끼울 탄창 +n)·`ResetCapacity()`(메뉴로 돌아갈 때), 매 프레임 조준 레이캐스트(`AimTarget`, 쏠 때는 다시 겨눠 판정), 연출 | `Ammo`, `HasMagazine`, 그 판의 보너스 탄 수 |
+| `Gun` | `TryFire()`·`EjectMagazine()`(A·메뉴 복귀, 남은 탄 버림)·`InsertMagazine()`, 콤보 보너스 `AddCapacity(n)`(지금 탄 +n, 앞으로 끼울 탄창 +n)·`ResetCapacity()`(메뉴로 돌아갈 때), 매 프레임 조준 레이캐스트(`AimTarget`, 쏠 때는 다시 겨눠 판정), 연출 | `Ammo`, `HasMagazine`, 그 판의 보너스 탄 수 |
 | `LaserSight` | 잡혀 있을 때 총구에서 조준선과 점 표시 | 없음 |
 | `UI_Gun` | 총 뒤쪽 남은 탄 숫자 (`Gun.AmmoChanged` 구독) | 없음 |
 | `ReturnToSpawn` | 손에서 놓친 뒤 2초 안에 다시 잡히지 않으면 처음 놓여 있던 자리(테이블)로 복귀, 다시 잡으면 취소 | 시작 위치·회전, 복귀 코루틴 |
@@ -106,8 +106,7 @@ Nov 17, 2026 · 기준 문서: [Concept_Doc.md](Concept_Doc.md)
 - 콤보는 **Playing 단계에서만** 셉니다. 표적을 맞히면 +1, 표적에 맞지 않은 탄(아무것도 안 맞음, 테이블·바닥, 쓰러지는 중인 표적)을 쏘면 0. 놓쳐서 쓰러진 표적과 딸깍은 콤보를 바꾸지 않습니다.
 - 콤보가 `comboStep`(5)의 배수가 되면 `gun.AddCapacity(comboBonusAmmo)`: 지금 탄 +5, 그 판 동안 앞으로 끼울 탄창 +5. 상한은 없고, 콤보가 끊겨도 보너스는 그 판 끝까지 갑니다. 메뉴로 돌아가면(→ Ready) 보너스는 0으로 돌아가, 메뉴에서 끼우는 탄창부터 다시 10발입니다.
 - 탄창이 없거나 탄이 0발일 때 방아쇠를 당기면 딸깍 소리만 나고 쏜 수에 들어가지 않습니다.
-- A 버튼(`TryEjectMagazine`)은 탄이 0발일 때만 탄창을 뺍니다. 탄이 남아 있으면 아무 일 없습니다(로그만).
-- 메뉴 복귀(`EjectMagazine`)는 탄이 남아 있어도 빼고, 남은 탄은 버립니다 (`Ammo = 0`).
+- A 버튼과 메뉴 복귀는 모두 `EjectMagazine`을 부릅니다. 탄이 남아 있어도 빼고, 남은 탄은 버립니다 (`Ammo = 0`).
 - 쓰러져 있는 표적은 맞혀도 점수가 없습니다.
 
 ### 2.1 시스템끼리 연결
@@ -296,8 +295,7 @@ public class Gun : MonoBehaviour
 
     public bool TryFire();                                      // PlayerController가 호출
     public void InsertMagazine(Magazine inserted);              // 끼울 자리 근처에서 탄창을 놓았을 때 Magazine이 호출
-    public void TryEjectMagazine();                             // PlayerController(A)가 호출. 0발일 때만 뺌
-    public void EjectMagazine();                                // GameManager(메뉴 복귀)가 호출. 남은 탄을 버리고 뺌
+    public void EjectMagazine();                                // PlayerController(A)·GameManager(메뉴 복귀)가 호출. 남은 탄을 버리고 뺌
     public void AddCapacity(int amount);                        // GameManager(콤보 보너스)가 호출. 지금 탄 +amount, 앞으로 끼울 탄창 +amount
     public void ResetCapacity();                                // GameManager(메뉴 복귀)가 호출. 보너스를 0으로
     public void SetSkin(Material skin);                         // UI(이스터에그)가 호출. null이면 원래 겉모습
@@ -323,7 +321,7 @@ public class PlayerController : MonoBehaviour
         if (!RightHand.firstInteractableSelected.transform.TryGetComponent(out Gun heldGun)) return;
 
         if (ShootAction.WasPressedThisFrame()) heldGun.TryFire();
-        if (MagOutAction.WasPressedThisFrame()) heldGun.TryEjectMagazine();   // 탄을 다 쓴 탄창만 빠진다
+        if (MagOutAction.WasPressedThisFrame()) heldGun.EjectMagazine();      // 탄이 남아 있어도 빠지고, 남은 탄은 버려진다
     }
 }
 ```
@@ -338,8 +336,8 @@ public class PlayerController : MonoBehaviour
 - **놓으면 끼움**: 놓일 때(`selectExited`, 다른 Interactor가 잡고 있지 않을 때) 같은 조건(빈 총, `insertDistance` 안)이면 다음 `Update`에서 `Gun.InsertMagazine(this)`를 부릅니다 (XRI가 놓기 처리를 끝낸 뒤). 탄창은 XRI 기본 Grab Transformer로 손을 따라갑니다.
 - **끼우기 (`Gun.InsertMagazine` → `Magazine.AttachTo(socket)`)**: 탄창의 `XRGrabInteractable`을 끄고(꽂힌 탄창은 손으로 못 뺌), Rigidbody를 kinematic으로 하고, `MagazineSocket`의 자식으로 원점·회전 없이 붙입니다. 총을 따라 그대로 움직입니다. `Gun`은 꽂힌 탄창을 들고 있어 `HasMagazine = magazine != null`, `Ammo = magazineCapacity`(10발).
 - **다른 곳에서 놓으면**: 탄창은 중력으로 떨어져 바닥에 남고, 다시 주울 수 있습니다.
-- **배출**: 오른손 A → `heldGun.TryEjectMagazine()` → 0발일 때만 `EjectMagazine()` → `magazine.Drop()` → `Ammo = 0`. 탄이 남아 있으면 빠지지 않습니다. 메뉴 복귀 때는 `GameManager`가 `EjectMagazine()`을 바로 불러 남은 탄과 함께 뺍니다.
-- **다 쓴 탄창 (`Magazine.Drop`)**: 총에서 떼어(부모 없음) Rigidbody를 다시 움직이게 하고 `Destroy(gameObject, droppedLifetime)`을 겁니다. 잡기는 끼울 때 꺼진 그대로라 다시 잡거나 꽂을 수 없고(빼고 다시 꽂아 10발 채우기 방지), 5초 뒤 사라집니다. 다 쓰지 않은 탄창은 지우지 않습니다 (9장 4).
+- **배출**: 오른손 A → `heldGun.EjectMagazine()` → `magazine.Drop()` → `Ammo = 0`. 탄이 남아 있어도 빠지고 남은 탄은 버립니다. 메뉴 복귀 때도 `GameManager`가 `EjectMagazine()`을 불러 남은 탄과 함께 뺍니다.
+- **뺀 탄창 (`Magazine.Drop`)**: 총에서 떼어(부모 없음) Rigidbody를 다시 움직이게 하고 `Destroy(gameObject, droppedLifetime)`을 겁니다. 잡기는 끼울 때 꺼진 그대로라 다시 잡거나 꽂을 수 없고(빼고 다시 꽂아 10발 채우기 방지), 5초 뒤 사라집니다. 끼운 적 없이 떨어뜨린 탄창은 지우지 않습니다 (9장 4).
 - **탄창 보충**: `MagazineSpawner`(`Prop/MagazineSpawner`, 자식 `Slot1~3`)가 시작할 때 자리마다 `Magazine.prefab`을 놓고, 자리마다 놓은 탄창을 기억합니다. 매 프레임 그 탄창이 집혀 있거나(`isSelected`), 사라졌거나(총에 끼워 뺀 뒤 지워짐 등), 자리에서 수평으로 `leaveDistance`(5cm) 넘게 벗어났으면(손이나 제자리로 돌아오는 총에 밀림) 빈 자리로 보고, `respawnDelay` 동안 빈 채면 그 자리에 새 탄창을 놓습니다. 자리는 테이블 윗면보다 약 12cm 위라 탄창이 떨어져 놓이므로, 높이는 빼고 수평 거리만 봅니다. 밀린 탄창은 그대로 남고, 새 탄창이 그 위로 떨어져도 튕기지 않습니다 (Play 모드 확인). 씬에 직접 놓는 탄창은 없습니다.
 - **탄창 물리**: 탄창은 2cm로 얇아서 떨어질 때 바닥을 뚫지 않게 Rigidbody Collision Detection을 Continuous Dynamic으로 둡니다.
 - **시작**: 매 판 빈 총(탄창 없음)으로 시작합니다. 처음에는 `MagazineSocket`이 비어 있고, MENU로 메뉴에 돌아갈 때는 `GameManager`가 `gun.EjectMagazine()`을 부릅니다. 테이블의 탄창을 끼운 뒤 START를 쏩니다.
@@ -483,9 +481,9 @@ QuickDraw
 | 스크립트 | 지금 상태 | 다음 |
 | --- | --- | --- |
 | `GameManager` | Ready → Countdown(3초) → Playing(90초, 쉬는 시간 없음) → Result → Ready, 게임 중에만 쏜 수·맞힌 수·콤보 집계(`Gun.Fired`, `PopupPattern.TargetHit`, 빗나감은 다음 `Update`에 판정), 30초마다 `popup.Begin(단계)`(단계 수 = `popup.StageCount`), 끝나면 `End`, 5연속마다 `gun.AddCapacity(5)`, `ComboHit` 이벤트, Ready로 갈 때 `gun.EjectMagazine()`·`gun.ResetCapacity()` | 그대로 씀 |
-| `PlayerController` | 발사·탄창 빼기 입력 액션과 PC 바인딩, 오른손(`NearFarInteractor`)에 든 총으로 `TryFire()` / `TryEjectMagazine()` 전달 | 그대로 씀 |
+| `PlayerController` | 발사·탄창 빼기 입력 액션과 PC 바인딩, 오른손(`NearFarInteractor`)에 든 총으로 `TryFire()` / `EjectMagazine()` 전달 | 그대로 씀 |
 | `PlayerMoveLock` | XR Origin에 붙음. 시뮬레이터 WASD 이동 막기(FPS 모드), Point-and-Click 끄기. Locomotion 끄기는 씬 설정과 겹쳐서 지웠음 | 그대로 씀 |
-| `Gun` | `effectRange`, `muzzleOffset`, `hitMask`, 쥐고 있을 때만 조준 레이캐스트(`AimTarget` = 맞은 콜라이더, `AimDistance`, 트리거 무시), 기즈모, `TryFire()`(탄이 없으면 딸깍 후 `false`, 쏘면 탄 −1·소리·진동 후 그 순간 다시 겨눠(`Aim()`) 맞은 콜라이더나 그 부모의 `IShootable`에 `Shooted(hit)`), `Ammo`·`HasMagazine`·`AmmoChanged`, `InsertMagazine(Magazine)`(탄창을 `MagazineSocket`에 붙이고 `magazineCapacity + 보너스`발, 철컥 소리), `TryEjectMagazine()`(0발일 때만 뺌), `EjectMagazine()`(탄창 `Drop`, 남은 탄 버림, 빠지는 소리), `AddCapacity(n)`·`ResetCapacity()`(콤보 보너스, 2.4), `Fired`(맞히기 전에 보냄), 총소리·딸깍·탄창 소리 (M6) | 그대로 씀 |
+| `Gun` | `effectRange`, `muzzleOffset`, `hitMask`, 쥐고 있을 때만 조준 레이캐스트(`AimTarget` = 맞은 콜라이더, `AimDistance`, 트리거 무시), 기즈모, `TryFire()`(탄이 없으면 딸깍 후 `false`, 쏘면 탄 −1·소리·진동 후 그 순간 다시 겨눠(`Aim()`) 맞은 콜라이더나 그 부모의 `IShootable`에 `Shooted(hit)`), `Ammo`·`HasMagazine`·`AmmoChanged`, `InsertMagazine(Magazine)`(탄창을 `MagazineSocket`에 붙이고 `magazineCapacity + 보너스`발, 철컥 소리), `EjectMagazine()`(A·메뉴 복귀, 탄창 `Drop`, 남은 탄 버림, 빠지는 소리), `AddCapacity(n)`·`ResetCapacity()`(콤보 보너스, 2.4), `Fired`(맞히기 전에 보냄), 총소리·딸깍·탄창 소리 (M6) | 그대로 씀 |
 | `LaserSight` | 잡혀 있을 때 총 로컬 좌표로 조준선과 조준점 표시 | 그대로 씀 |
 | `ReturnToSpawn` | 놓친 뒤 `returnDelay` 지나면 시작 자리로 복귀, 다시 잡으면 취소. 잡힌 채로 꺼지면(씬 전환 등) XRI가 놓기를 보내므로 그때는 시작하지 않음 (`activeInHierarchy`로 판단) | 그대로 씀 |
 | `SnapGuide` | hover 중이고 안 잡혔을 때 손 Attach에 반투명 미리보기. 글자(TextMeshPro) 메시는 복제하지 않음. 총과 탄창(M2-b)에 붙음 | 그대로 씀 |
@@ -514,7 +512,7 @@ QuickDraw
 | --- | --- | --- |
 | **M0 기반** ✅ | 레이어 이름, XR Origin 정리, `PlayerMoveLock`, `Gun` 조준 레이캐스트 | Play 하면 WASD로 움직이지 않고, 총구가 다른 물체를 겨눌 때 `[Gun] 조준 대상` 로그 |
 | **M1 총** ✅ | `PlayerController` 손 연결, 총에 Physics Layer `Gun` 지정, `SnapGuide`, `Gun.TryFire`, `ReturnToSpawn`, 소리·진동, `LaserSight` | 오른손을 총에 대면 가이드, 그립하면 손에 붙음. 왼손으로는 안 잡힘. 트리거(또는 좌클릭)로 한 발씩 쏘고, 떨어뜨리면 2초 뒤 테이블로 |
-| **M2 탄창** ✅ | 탄창 끼우기(`Magazine`, 소켓, 끼울 자리 가이드), 배출, 탄약, `UI_Gun`, `Magazine.prefab` 정리, `MagazineSpawner`, Gun×Magazine 충돌 끔, 왼손 Interaction·Physics Layer Mask | 빈 총으로 시작(방아쇠는 딸깍). 쥔 탄창을 빈 총 아래에 대면 반투명 가이드가 보이고 놓으면 끼워짐, 다른 곳에서 놓으면 떨어져 바닥에 남음. 끼우면 바로 발사. 10발 쏘면 0 표시, 그 뒤로는 딸깍. A(또는 R)는 0발일 때만 탄창을 뺌. 뺀 탄창은 다시 잡히지 않고 5초 뒤 사라짐. 세 단계로 나눔: **M2-a** 탄약 규칙·`UI_Gun` → **M2-b** 탄창 프리팹·스폰·레이어 → **M2-c** 끼우기·소켓·배출 |
+| **M2 탄창** ✅ | 탄창 끼우기(`Magazine`, 소켓, 끼울 자리 가이드), 배출, 탄약, `UI_Gun`, `Magazine.prefab` 정리, `MagazineSpawner`, Gun×Magazine 충돌 끔, 왼손 Interaction·Physics Layer Mask | 빈 총으로 시작(방아쇠는 딸깍). 쥔 탄창을 빈 총 아래에 대면 반투명 가이드가 보이고 놓으면 끼워짐, 다른 곳에서 놓으면 떨어져 바닥에 남음. 끼우면 바로 발사. 10발 쏘면 0 표시, 그 뒤로는 딸깍. A(또는 R)는 탄이 남아 있어도 탄창을 뺌(남은 탄 버림). 뺀 탄창은 다시 잡히지 않고 5초 뒤 사라짐. 세 단계로 나눔: **M2-a** 탄약 규칙·`UI_Gun` → **M2-b** 탄창 프리팹·스폰·레이어 → **M2-c** 끼우기·소켓·배출 |
 | **M3 표적** ✅ | `Target.prefab`(루트 피벗 아래, 자식 `Face`), `Shooted(hit)`(`Gun`이 조준 `RaycastHit`를 넘김), `Target`(원판 모양 콜라이더, 일어나기·쓰러지기), `PopupPattern`, 씬의 4.6m 표적 5개 정리, UI 보드 Ignore Raycast, 표적은 `Shootable` 레이어 | 팝업 패턴이 단독으로 돌아감. 원판 밖은 맞지 않음 |
 | **M4 게임 흐름** ✅ | `GameManager` 단계 전환·점수(게임 중 쏜 것만 셈, `Gun.Fired`), `UI` (START / MENU, 점수, 결과), 메뉴 복귀 때 `EjectMagazine`, Menu 보드 눈높이로 | START → 1분 30초(30초마다 단계) → 결과(점수·명중률), MENU로 메뉴 복귀(총이 비워짐) 후 다시 탄창을 끼우고 START로 새 판 |
 | **M5 단계 난이도** ✅ | `GameManager`의 단계별 `targetCount`·`targetLifetime`·`movingChance`·`volleyInterval`, `PopupPattern` 하나에 좌우 이동 표적(`Target`)과 일제 등장 | 30초마다 표적이 작아지고(지름 1.0 → 0.7 → 0.5m) 동시에 서 있는 수가 3 → 4 → 5개. 2단계부터 일부 표적이 좌우로 움직이고, 3단계에는 화면이 빈 뒤 4개가 한꺼번에 섬 (Play 모드에서 확인) |
@@ -545,9 +543,9 @@ QuickDraw
 | Score 보드 오른쪽에 2연속부터 "n Combo", 오를 때 튀어나옴, 끊기면 사라짐 | `UI_Combo` (`comboText`, `popScale`) | 게임 중 2연속에 흰 "2 Combo"가 보드 오른쪽에 뜨고 맞힐 때마다 톡 커졌다 줄어듦. 빗나가면 사라짐. 맞힌 자리에는 콤보 숫자가 안 뜸 |
 | 5연속을 넘으면 콤보 글자가 단계 색·큰 글자 | `UI_Combo` (`bonusColors`, `bonusScale`) | 5~9 노랑, 10~14 주황, 15~19 빨강, 20 이상 보라 |
 | 5의 배수엔 표적 위 "+5발"·탄피 소리·빛 고리 이펙트 | `UI_Combo` (`popupPrefab`, `bonusClip`, `burstPrefab`) | 5·10연속 때 맞힌 표적 위에 그 색의 "+5발"이 떠오르고 고리가 퍼짐. 10은 5보다 소리 음이 조금 높고 이펙트가 더 큼 |
-| 탄을 다 써야 A로 탄창을 뺄 수 있음 | `Gun.TryEjectMagazine` | 1발이라도 남으면 A를 눌러도 안 빠짐, 0발이면 빠짐 |
+| 탄이 남아 있어도 A로 탄창을 뺄 수 있음 | `Gun.EjectMagazine` | 5발 남기고 A → 탄창이 빠지고 0 |
 | 메뉴 복귀 때는 남은 탄과 함께 빠짐 | `Gun.EjectMagazine` | 5발 남기고 MENU → 0 |
-| 다 쓴 탄창은 5초 뒤 사라지고, 떨어뜨린 새 탄창은 남음 | `Magazine.Drop` | 뺀 탄창은 5초 뒤 없음, 놓친 새 탄창은 그대로 |
+| 뺀 탄창은 5초 뒤 사라지고, 떨어뜨린 새 탄창은 남음 | `Magazine.Drop` | 뺀 탄창은 5초 뒤 없음, 놓친 새 탄창은 그대로 |
 | 놓치면 2초 뒤 테이블로 | `ReturnToSpawn` | 떨어뜨리고 2초 기다림 |
 | 명중률 = 맞힌 수 ÷ 쏜 수 | `GameManager` | 10발 중 7발 명중 → 70% |
 | 게임이 끝나면 남은 표적 한꺼번에 쓰러짐 | `PopupPattern.End` | 시간 0일 때 표적 상태 |
