@@ -19,9 +19,9 @@ namespace QuickDraw.Scripts
 
         [Header("5의 배수 (보너스)")]
         [SerializeField] private float bonusScale = 1.5f;       // 5연속을 넘은 뒤 콤보 글자 크기 / "+n발" 글자 크기 (배)
-        [SerializeField] private Color[] bonusColors =          // 단계별 색 (5, 10, 15, 20…). 넘으면 마지막 색
+        [SerializeField] private Color[] bonusColors =          // 단계별 색 (5, 10, 15, 20…). 넘으면 마지막 색. 애플 시스템 색 (노랑, 주황, 빨강, 보라)
         {
-            new Color(1f, 0.9f, 0.2f), new Color(1f, 0.55f, 0.1f), new Color(1f, 0.2f, 0.2f), new Color(0.75f, 0.35f, 1f),
+            new Color(1f, 0.839f, 0.039f), new Color(1f, 0.624f, 0.039f), new Color(1f, 0.271f, 0.227f), new Color(0.749f, 0.353f, 0.949f),
         };
         [SerializeField] private AudioClip bonusClip;           // 보너스 소리 (ComboBonus, 비어 있으면 소리 없음)
         [SerializeField] private float pitchStep = 0.1f;        // 단계마다 높아지는 음 (배)
@@ -67,7 +67,7 @@ namespace QuickDraw.Scripts
                 if (combo > shownCombo) poppedAt = Time.time;
                 shownCombo = combo;
                 comboText.gameObject.SetActive(combo >= 2);
-                comboText.text = $"{combo} Combo";
+                comboText.text = $"<b>{combo}</b> <size=65%>Combo</size>";
                 int tier = combo / gameManager.ComboStep;
                 comboText.color = tier == 0 ? Color.white : TierColor(tier);
             }

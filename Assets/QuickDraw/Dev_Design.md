@@ -192,12 +192,12 @@ stateDiagram-v2
 
 - **세기 (`GameManager`)**: 2.1의 순서대로 맞히면 `Combo + 1`, 빗나가면 0입니다. Playing일 때만 셉니다.
 - **보너스**: `Combo % comboStep == 0`이면 `gun.AddCapacity(comboBonusAmmo)`. `Gun`은 보너스 탄 수를 더해 두고(`InsertMagazine`이 `magazineCapacity + 보너스`발을 채움), 지금 꽂힌 탄창에도 바로 `Ammo + n`을 해서 `AmmoChanged`를 보냅니다. 마지막 탄으로 5연속이 되면 0발에서 5발이 됩니다.
-- **콤보 표시 (`UI_Combo`, Score 보드 오른쪽)**: `UI/Score/ComboText`(TextMeshPro, Score 보드 기준 오른쪽 2.3m, 글자 크기 1.8)가 "{combo} Combo"를 보입니다. `UI_Combo.Update`가 매 프레임 `gameManager.Combo`를 읽어(Playing이 아니면 0으로 봄) 바뀔 때만 글자를 다시 쓰고, 2 이상일 때만 켭니다. 그래서 빗나가 0이 되거나 게임이 끝나면 사라집니다. Score 보드의 자식이라 Playing에서만 보입니다.
+- **콤보 표시 (`UI_Combo`, Score 보드 오른쪽)**: `UI/Score/ComboText`(TextMeshPro, 피벗이 왼쪽 끝이라 Score 알약 오른쪽 1.4m에서 시작해 커질 때 오른쪽으로만 커짐, 글자 크기 1.9, 뒤에 자식 알약 `Pill` 1.3×0.5m)가 "**{combo}** Combo"(숫자 굵게, Combo는 65%)를 보입니다. `UI_Combo.Update`가 매 프레임 `gameManager.Combo`를 읽어(Playing이 아니면 0으로 봄) 바뀔 때만 글자를 다시 쓰고, 2 이상일 때만 켭니다. 그래서 빗나가 0이 되거나 게임이 끝나면 사라집니다. Score 보드의 자식이라 Playing에서만 보입니다.
   - **튀어나옴**: 콤보가 오를 때마다 `popScale`(1.4배)로 커졌다가 `popTime`(0.15초) 동안 원래 크기로 줄어듭니다.
-  - **단계 스타일**: 단계 = `combo ÷ comboStep`(5~9 → 1, 10~14 → 2 …)이 1 이상이면 색 = `bonusColors[단계 − 1]`(노랑·주황·빨강·보라, 20 넘으면 보라 유지)이고 크기 × `bonusScale`(1.5)입니다. 2~4는 흰 보통 글자입니다.
-  - **글자 머티리얼**: 천장이나 밝은 하늘 앞에서도 읽히도록 `ComboText`와 `ComboPopup.prefab` 모두 전용 머티리얼 `M_ComboText`(폰트 기본 머티리얼을 복제해 검은 외곽선 0.25·조금 굵게)를 씁니다. 폰트 기본 머티리얼은 다른 UI 글자와 같이 쓰므로 바꾸지 않습니다.
+  - **단계 스타일**: 단계 = `combo ÷ comboStep`(5~9 → 1, 10~14 → 2 …)이 1 이상이면 색 = `bonusColors[단계 − 1]`(애플 시스템 색 노랑·주황·빨강·보라, 20 넘으면 보라 유지)이고 크기 × `bonusScale`(1.5)입니다. 2~4는 흰 보통 글자입니다.
+  - **글자 머티리얼**: `ComboText`는 뒤에 어두운 알약이 있어 폰트 기본 머티리얼을 씁니다. 배경 없이 표적 위에 뜨는 `ComboPopup.prefab`만 천장이나 밝은 하늘 앞에서도 읽히도록 전용 머티리얼 `M_ComboText`(Pretendard-Regular SDF 기본 머티리얼을 복제해 검은 외곽선 0.25·조금 굵게, 팝업은 Bold라 TMP가 이 값을 Bold 아틀라스에 옮겨 씀)를 씁니다. 폰트 기본 머티리얼은 다른 UI 글자와 같이 쓰므로 바꾸지 않습니다.
 - **5의 배수 (보너스)**: `GameManager.ComboHit(int combo, Vector3 point)`에서 `combo`가 `comboStep`의 배수일 때만 아래가 나옵니다. 맞은 자리에는 콤보 숫자를 띄우지 않습니다.
-  - **+5발 (맞은 표적 위)**: `point`(맞은 지점)에서 `popupLift`(0.5m) 위에 `ComboPopup.prefab`(TextMeshPro, `NotoSansKR-Regular SDF`, 글자 크기 1, `Ignore Raycast` 레이어)으로 "+5발"을 그 단계 색으로 만듭니다. 크기는 멀리서도 읽히도록 머리까지 거리 × `sizePerMeter`(0.4) × `bonusScale`(1.5)이고, 늘 플레이어(메인 카메라) 쪽을 봅니다. `popScale`(1.4배)로 튀어나와 `popTime`(0.15초) 동안 1배로 줄고, `popupDuration`(0.8초) 동안 `popupRise`(0.3m)만큼 떠오릅니다. 투명도는 `fadeStart`(60%, 약 0.48초)까지 그대로이다가 끝까지 0이 된 뒤 지워집니다.
+  - **+5발 (맞은 표적 위)**: `point`(맞은 지점)에서 `popupLift`(0.5m) 위에 `ComboPopup.prefab`(TextMeshPro, `Pretendard-Regular SDF` 굵게, 글자 크기 1, `Ignore Raycast` 레이어)으로 "+5발"을 그 단계 색으로 만듭니다. 크기는 멀리서도 읽히도록 머리까지 거리 × `sizePerMeter`(0.4) × `bonusScale`(1.5)이고, 늘 플레이어(메인 카메라) 쪽을 봅니다. `popScale`(1.4배)로 튀어나와 `popTime`(0.15초) 동안 1배로 줄고, `popupDuration`(0.8초) 동안 `popupRise`(0.3m)만큼 떠오릅니다. 투명도는 `fadeStart`(60%, 약 0.48초)까지 그대로이다가 끝까지 0이 된 뒤 지워집니다.
   - **소리**: `bonusClip`(`Audio/ComboBonus.mp3`, SoldierSoundsPack의 `bulletshells02.mp3`를 복사, 약 1초 동안 탄피가 쏟아지는 소리)을 머리에서 들리는 2D 소리로 냅니다. `PlayClipAtPoint`는 음 높이를 못 바꾸므로 잠깐 쓰는 `AudioSource`를 만들어 `pitch = 1 + pitchStep × (단계 − 1)`(5 → 1.0, 10 → 1.1 …)로 재생하고, 끝나면 지웁니다. 압축된 클립이라 파형을 보지 못하고 길이로 골랐으므로, 들어 보고 어울리지 않으면 바꿉니다.
   - **이펙트**: 맞은 지점에 `ComboBurst.prefab`을 만들고, 멀어도 비슷한 크기로 보이도록 크기 = 머리까지 거리 × `burstSizePerMeter`(0.12) × (1 + `burstScaleStep` × (단계 − 1))로 둡니다(15m의 10콤보 → 약 2.3배). 모든 파티클의 시작 색은 그 단계 색으로 바꿉니다. 루트는 퍼져 나가는 빛 고리 1개(`M_FxRing` = `M_Fx`에 `T_FxRing` 고리 텍스처, 1배일 때 지름 0.33m → 2.2m, 0.45초, 흐려짐), 자식 `Sparkles`는 불꽃 40개(0.1~0.22m)가 2~5m/s로 사방에 튀어 살짝 떨어지며(중력 0.4) 0.4~0.7초 뒤 사라집니다. 크기가 부모를 따라가도록 `scalingMode = Hierarchy`이고, 다 끝나면 `stopAction = Destroy`로 지워집니다. `T_FxRing.png`(128px, 반지름 75% 근처가 불투명하고 안팎으로 부드럽게 투명해지는 흰 고리)는 스크립트로 만들었습니다.
 
@@ -362,6 +362,12 @@ Near-Far Interactor의 근접 캐스터(`Sphere Interaction Caster`)는 Physics 
 
 **UI 보드**: Menu, Countdown, Score, Result 보드는 플레이어 앞 4.1m에 있고, 표적은 그 뒤 5~15m에 나옵니다. `UI` 아래 전체를 `Ignore Raycast` 레이어로 두고(`hitMask`에 없음), START / MENU 버튼만 `Shootable`로 둡니다. 보드 뒤판에는 콜라이더가 없습니다. 예외로 메뉴 왼쪽의 튜토리얼 보드(`UI/Tutorial/Panel`)는 이스터에그를 위해 `Shootable` + BoxCollider(두께 2cm)입니다.
 
+**UI 스타일 (애플 visionOS 느낌)**: 보드 뒤판은 모두 Quad에 `QuickDraw/UIGlass` 셰이더(`Shaders/UIGlass.shader`)를 씁니다. Quad 스케일(m)로 크기를 읽어 둥근 사각형을 그리고(가장자리 안티에일리어싱, 위가 조금 밝은 그라데이션, 안쪽 얇은 빛 테두리), 모서리 반지름은 짧은 변의 절반까지만 커져서 아주 크게 두면 알약·원이 됩니다. 머티리얼은 셋입니다: `M_UIGlass`(어두운 글래스, 반지름 0.14m: Menu·Tutorial·Result), `M_UIGlassPill`(같은 색 알약/원: Score, Combo, Countdown), `M_UIButton`(애플 시스템 파랑 알약: START·MENU, 큐 2995로 판 위). 판은 큐 Transparent-10(2990)이라 글자(3000)보다 먼저 그려지고, 깊이를 써서(ZWrite On, 모양 밖은 clip) 뒤의 반투명 창유리가 판 위로 그려지지 않습니다. 판은 불투명(알파 1)입니다: Linear 색 공간 + HDR 하늘이라 1~2%만 비쳐도 뒤 창문 무늬가 보였기 때문입니다. 글자는 흰 굵은 제목 / 60% 흰색 설명의 위계로 둡니다. 폰트는 애플 SF Pro와 닮은 한글 폰트 **Pretendard**(v1.3.9, SIL OFL 1.1, `99. External Assets/Font/Pretendard/`에 OTF·라이선스)입니다. `Pretendard-Regular SDF`·`Pretendard-Bold SDF`는 동적 TMP 에셋(샘플 90, 패딩 9, 1024 아틀라스·멀티 아틀라스, 빌드 때 동적 데이터 지움)이고, Regular의 굵기 표 700(Bold)에 Bold 에셋을 연결해서 Bold 스타일이나 `<b>`는 가짜 굵게가 아니라 진짜 Bold 글꼴로 그려집니다. 그래서 글자에는 Regular 에셋만 지정합니다. 에셋이 각 약 9MB인 것은 대부분 영문 커닝 쌍(`m_GlyphPairAdjustmentRecords`)입니다. 이전 `NotoSansKR-Regular SDF`는 더 쓰지 않습니다. 버튼은 1.0×0.3m 파란 알약 + 굵은 흰 글자입니다. 버튼 BoxCollider는 Quad 크기 그대로(두께 4cm)입니다.
+- **겨눔 강조**: `UI.HighlightAimedButton`이 매 프레임 `gun.AimTarget`이 START / MENU 버튼이면 그 버튼의 `_Highlight`를 `hoverSpeed`(12/초)로 0 → 1로 올려 밝게 하고(MaterialPropertyBlock), 벗어나면 되돌립니다. 총을 쥐고 겨눌 때만 `AimTarget`이 정해집니다.
+- **카운트다운 숫자**: 숫자가 바뀔 때마다 `countdownPopScale`(1.25배)에서 `countdownPopTime`(0.25초) 동안 1배로 돌아옵니다.
+- **Score 글자**: `"<b>1:07</b> | 점수 14"` 꼴의 리치 텍스트. 남은 시간은 `<mspace>` 고정폭이라 숫자가 바뀌어도 흔들리지 않고, "점수" 이름표는 작고 흐리게, 점수 숫자는 굵게 씁니다.
+- **Result 글자**: 흐린 "점수" 이름표 / 큰 굵은 점수 숫자 / 작은 "명중률 **79%** · 27/34" 세 줄.
+
 **총 이스터에그**: Ready에서 튜토리얼 보드를 `hitsPerSkin`(10)발 맞힐 때마다 `UI`가 `gun.SetSkin(gunSkins[...])`를 불러 총 몸체가 황금(`M_GunGold`) → 은하(`M_GunGalaxy`) → 용암(`M_GunLava`) → 진주광(`M_GunPearl`) → 원래 모습 순서로 바뀌고 계속 돕니다. 적중 수는 `UI`에 남아 판이 바뀌거나 메뉴로 돌아가도 유지되고, 게임(Play)을 끄면 처음부터입니다. `Gun.SetSkin`은 `bodyRenderers`(Gun, Gate_07, Trigger_Guard_07)의 머티리얼만 바꾸고(null이면 `Awake` 때 기억한 원래 것), 레이저·남은 탄 숫자·총구 화염·탄창은 그대로입니다. 튜토리얼 보드는 Ready에서만 보이므로 게임 중에는 맞힐 수 없습니다. 황금은 URP Lit 금속 머티리얼이고, 나머지 셋은 `Shaders/`의 직접 쓴 셰이더입니다: `QuickDraw/Galaxy`(보라·파랑 성운이 흐르고 별이 반짝임), `QuickDraw/Lava`(검은 바위에 주황 균열이 맥동, 보로노이 경계), `QuickDraw/Pearl`(보는 각도에 따라 파스텔 무지갯빛). 공통 코드는 `GunSkin.cginc`에 있습니다: 무늬를 총의 **오브젝트 좌표(m)**로 계산해 총이 움직여도 무늬가 따라가고(모델 UV는 아틀라스라 무늬용으로 쓰지 않음), 씬 조명 대신 고정된 빛 방향으로 명암을 주며, VR 양눈 렌더링(single-pass instanced)용 인스턴싱·스테레오 매크로를 넣었습니다. 무늬 크기·속도는 각 머티리얼 Inspector에서 바꿉니다.
 
 ### 3.7 PC 테스트
@@ -392,11 +398,12 @@ Assets/QuickDraw/
 │                                ComboBonus.mp3 (SoldierSoundsPack/bulletshells02.mp3를 복사, 2.4)
 ├─ Materials/                    M_Table, M_Target, M_TargetCenter (M3), M_TargetBorder (과녁 테두리, M6), M_Board (M4),
 │                                M_SnapGuide, M_Laser (M1), M_Fx (M6), M_FxRing (콤보 빛 고리), M_ComboText (콤보 글자 외곽선, 2.4),
-│                                M_GunGold, M_GunGalaxy, M_GunLava, M_GunPearl (이스터에그)
+│                                M_GunGold, M_GunGalaxy, M_GunLava, M_GunPearl (이스터에그),
+│                                M_UIGlass, M_UIGlassPill, M_UIButton (UI 뒤판·버튼, UIGlass 셰이더. M_Board는 더 쓰지 않음)
 ├─ Prefabs/                      Gun.prefab, Magazine.prefab, Target.prefab (M3), HitEffect.prefab (M6), ComboPopup.prefab (표적 위 "+n발"),
 │                                ComboBurst.prefab (5의 배수 빛 고리·불꽃, 2.4)
 ├─ Scenes/QuickDraw.unity
-├─ Shaders/                      GunSkin.cginc, Galaxy.shader, Lava.shader, Pearl.shader (이스터에그)
+├─ Shaders/                      GunSkin.cginc, Galaxy.shader, Lava.shader, Pearl.shader (이스터에그), UIGlass.shader (UI 둥근 뒤판·알약 버튼)
 ├─ Textures/                     T_FxSoft (M6), T_FxRing (콤보 빛 고리, 2.4)
 └─ Scripts/                      GameManager, PlayerController, PlayerMoveLock, Gun, IShootable, Target, UI, UI_Gun, UI_Combo
                                  + LaserSight, ReturnToSpawn, SnapGuide, Magazine, MagazineSpawner, PopupPattern
@@ -451,12 +458,15 @@ QuickDraw
 │                                Scene 뷰에 단계별 등장 범위 기즈모 (2.5)
 └─ UI                            UI (보드·버튼·글자 연결), UI_Combo (ComboPopup.prefab, ComboBurst.prefab, ComboBonus 연결), (0, 0, 4.1).
                                  아래 전체 Ignore Raycast, 버튼만 Shootable (M4)
-   ├─ Menu                       눈높이 1.6m. Panel(2.4×1.5m, M_Board) + Title "QUICK DRAW" + Hint + StartButton(빨간 원판 0.5m) + 글자
-   ├─ Tutorial                   메뉴 왼쪽. Panel(Shootable + BoxCollider, 이스터에그) + TutorialText(조작 안내 세 줄)
-   ├─ Countdown                  눈높이 1.6m. CountdownText(큰 숫자 3·2·1)만, 뒤판 없음
-   ├─ Score                      높이 3.5m(표적 범위 위). Panel(2.6×0.5m) + ScoreText "1:30   점수 0" (남은 시간 m:ss, 점수)
-   │                             + ComboText "7 Combo" (보드 오른쪽 2.3m, M_ComboText, UI_Combo가 2연속부터 켬)
-   └─ Result                     눈높이 1.6m. Panel + Title "결과" + ResultText(점수, 명중률 %(맞힌 수/쏜 수)) + MenuButton + 글자
+   ├─ Menu                       눈높이 1.6m. Panel(2.4×1.5m, M_UIGlass) + Title "QUICK DRAW"(굵게) + Hint(60% 흰색)
+   │                             + StartButton(파란 알약 1.0×0.3m, M_UIButton) + StartButtonLabel
+   ├─ Tutorial                   메뉴 왼쪽 (-2.4, 1.6, -0.15), 플레이어 쪽으로 -28° 돌림. Panel(2.3×1.5m, M_UIGlass, Shootable + BoxCollider, 이스터에그)
+   │                             + TutorialText("조작 방법" 제목 + 파란 번호 1·2·3의 조작 안내 세 줄, 왼쪽 정렬)
+   ├─ Countdown                  눈높이 1.6m. Panel(지름 1.2m 원, M_UIGlassPill) + CountdownText(큰 굵은 숫자 3·2·1)
+   ├─ Score                      높이 3.5m(표적 범위 위). Panel(알약 2.4×0.56m, M_UIGlassPill) + ScoreText "1:30 | 점수 0" (남은 시간 m:ss, 점수)
+   │                             + ComboText "7 Combo" (Score 알약 오른쪽, 자식 Pill 알약, UI_Combo가 2연속부터 켬)
+   └─ Result                     눈높이 1.6m. Panel(2.4×1.7m, M_UIGlass) + Title "결과"(작고 흐리게) + ResultText(점수, 명중률 %·맞힌 수/쏜 수)
+                                 + MenuButton(파란 알약, M_UIButton) + MenuButtonLabel
 ```
 
 - **장식 소품 (`Prop/Decor`)**: 표적이 나오는 범위(좌우 ±45°, 5~15m)와 그쪽을 보는 시선을 막지 않도록, 정면 기준 50° 안·17m 안에는 아무것도 두지 않습니다.
@@ -471,7 +481,7 @@ QuickDraw
 - `PopupPattern`은 게임 중 `GameManager`가 `Begin`을 부른 뒤에만 표적을 내보냅니다.
 - Menu, Countdown, Result는 한 단계에 하나만 보이므로 같은 자리(눈높이)를 씁니다.
 - 튜토리얼 보드 문구는 기획서의 조작 방법에 맞춘 세 줄입니다: "오른손 그립으로 총을 잡고 트리거로 쏩니다" / "왼손으로 탄창을 집어 총 아래에 대고 놓으면 끼워집니다" / "탄을 다 쓰면 A 버튼으로 탄창을 뺍니다".
-- 보드는 빈 부모(스케일 1) 아래에 뒤판(Quad)과 글자를 따로 둡니다. 뒤판을 늘려도 글자가 늘어나지 않게 하기 위해서입니다. 한글은 `NotoSansKR-Regular SDF` 폰트를 씁니다.
+- 보드는 빈 부모(스케일 1) 아래에 뒤판(Quad)과 글자를 따로 둡니다. 뒤판을 늘려도 글자가 늘어나지 않게 하기 위해서입니다. UI 글자(보드, 총의 `AmmoText`, `ComboPopup`)는 모두 `Pretendard-Regular SDF`를 씁니다 (아래 UI 스타일 참고).
 - Build Profiles의 Scene List에는 `QuickDraw.unity`가 들어 있습니다(`ProjectSettings/EditorBuildSettings.asset`).
 
 ---
